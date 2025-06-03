@@ -84,16 +84,6 @@
       font-size: 18px;
       color: #cc0000;
     }
-    
-    /* *******************************
-       Кнопка "Следующий" (появляется, если время истекло)
-       ******************************* */
-    #nextBtn {
-      display: none;
-      padding: 5px 10px;
-      font-size: 16px;
-      margin-top: 10px;
-    }
   </style>
 </head>
 <body>
@@ -113,7 +103,7 @@
   <div id="difficultySelection">
     <p>Выберите уровень сложности:</p>
     <select id="difficultySelect">
-      <!-- Уровни 1–5: здесь используется операция ± и переменная может быть отрицательной -->
+      <!-- Уровни 1–8: существующие, а теперь добавлен уровень 9 -->
       <option value="1">Уровень 1: Базовый (a*x ± b = c)</option>
       <option value="2">Уровень 2: Переменная с двух сторон (a*x ± B = d*x ± C)</option>
       <option value="3">Уровень 3: Раскрытие скобок (a*(x ± b) = c)</option>
@@ -122,6 +112,7 @@
       <option value="6">Уровень 6: Системное уравнение (две переменные: x и y)</option>
       <option value="7">Уровень 7: Дробное уравнение ((x ± a)/b = c)</option>
       <option value="8">Уровень 8: Квадратное уравнение (a*x² + b*x + c = 0)</option>
+      <option value="9">Уровень 9: Уравнение со скобками ( (ax+b)(cx+d)=e )</option>
     </select>
     <br><br>
     <button id="startGameBtn">Начать игру</button>
@@ -136,7 +127,6 @@
     <p id="equation"></p>
     <input type="text" id="answer" placeholder="Введите значение">
     <p id="result"></p>
-    <button id="nextBtn">Следующий</button>
   </div>
   <script>
     // ====================================================
@@ -210,7 +200,6 @@
     const timerDisplay = document.getElementById("timerDisplay");
     const difficultySelect = document.getElementById("difficultySelect");
     const startGameBtn = document.getElementById("startGameBtn");
-    const nextBtn = document.getElementById("nextBtn");
     const difficultySelectionDiv = document.getElementById("difficultySelection");
     const gameAreaDiv = document.getElementById("gameArea");
     
@@ -227,25 +216,8 @@
     updateTimerDisplay();
     
     // ====================================================
-    // 3. Обработчик для кнопки "Следующий" – вызывается, когда время истекло
+    // 3. Вспомогательные функции форматирования
     // ====================================================
-    nextBtn.addEventListener("click", function() {
-      nextBtn.style.display = "none"; // скрываем кнопку
-      generateEquation();
-    });
-    
-    // Если режим тестера активен, добавляем обработчик стрелок для переключения уравнений
-    if (testerMode) {
-      window.addEventListener("keydown", function(event) {
-        if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
-          event.preventDefault();
-          resultP.textContent = "Режим тестера: пропуск уравнения.";
-          setTimeout(() => { resultP.textContent = ""; generateEquation(); }, 500);
-        }
-      });
-    }
-    
-    // Вспомогательные функции форматирования
     function formatVarTerm(coefficient, variable) {
       return (Math.abs(coefficient) === 1) ? variable : (coefficient + variable);
     }
@@ -256,9 +228,6 @@
   <script>
     // ====================================================
     // 4. Функция генерации уравнений по уровню сложности
-    // (Уровни 1–5: равновероятное использование ±, коэффициент при переменной теперь может быть отрицательным.
-    // Дополнительные проверки исключают: одинаковые слагаемые, отсутствие второго слагаемого,
-    // переменная не умножена, число слагаемого совпадает с решением.)
     // ====================================================
     function generateRandomEquationByDifficulty(difficulty) {
       let eqObj = { equation: "", solution: null };
@@ -451,6 +420,54 @@
         eqStr += " = 0";
         eqObj.equation = eqStr;
         eqObj.solution = (r1 === r2) ? [r1] : [r1, r2];
+      
+      } else if (difficulty === 9) {
+        // Новый уровень 9: уравнение вида (ax+b)(cx+d)=e, которое раскрывается в квадратное уравнение.
+        // Теперь a, b, c, d, e не равны 0 или 1 и все имеют разные значения.
+        let a, b, c, d, k, e, A, B, C, disc;
+        do {
+          // Выбираем a и c из диапазона [-5,5], исключая 0 и 1.
+          a = Math.floor(Math.random() * 11) - 5;
+          if (a === 0 || a === 1) a = a < 0 ? -2 : 2;
+          c = Math.floor(Math.random() * 11) - 5;
+          if (c === 0 || c === 1) c = c < 0 ? -3 : 3;
+          // b и d выбираем из диапазона [-10,10], исключая 0 и 1.
+          b = Math.floor(Math.random() * 21) - 10;
+          if (b === 0 || b === 1) b = b < 0 ? -2 : 2;
+          d = Math.floor(Math.random() * 21) - 10;
+          if (d === 0 || d === 1) d = d < 0 ? -3 : 3;
+          // Проверяем, чтобы a, b, c, d были все разные.
+        } while (new Set([a, b, c, d]).size !== 4);
+        
+        // k выбираем из [1,5]
+        k = Math.floor(Math.random() * 5) + 1;
+        // Определяем e так, чтобы постоянная при раскрытии стала k: (ax+b)(cx+d)= b*d - k
+        e = b * d - k;
+        // Проверка: e не должна быть 0 или 1, и должна быть отличной от остальных
+        if (e === 0 || e === 1 || new Set([a, b, c, d, e]).size !== 5) {
+          // Если условие не выполнено, повторим цикл.
+          disc = -1;
+        } else {
+          // После раскрытия: A = ac, B = ad+bc, C = k.
+          A = a * c;
+          B = a * d + b * c;
+          C = k;
+          disc = B * B - 4 * A * C;
+        }
+        // Повторяем цикл, пока дискриминант отрицательный или условия по ненулевым, неравным 1 и различности не выполнены.
+        while (disc < 0);
+        // Вычисляем корни квадратного уравнения (для информации)
+        let sqrtDisc = Math.sqrt(disc);
+        let root1 = (-B + sqrtDisc) / (2 * A);
+        let root2 = (-B - sqrtDisc) / (2 * A);
+        // Формируем строку уравнения вида (ax+b)(cx+d)=e
+        eqObj.equation = "(" + a + "x " + (b >= 0 ? "+ " + b : "- " + Math.abs(b)) + ")(" + c + "x " + (d >= 0 ? "+ " + d : "- " + Math.abs(d)) + ") = " + e;
+        // Сохраняем корни как решение (с проверкой на совпадение).
+        if (Math.abs(root1 - root2) < 0.001) {
+          eqObj.solution = [root1];
+        } else {
+          eqObj.solution = [root1, root2];
+        }
       }
       
       return eqObj;
@@ -467,7 +484,6 @@
       clearInterval(timerInterval);
       currentTime = timeLimit;
       updateTimerDisplay();
-      nextBtn.style.display = "none";
       timedOut = false;
       
       const randomEq = generateRandomEquationByDifficulty(currentDifficulty);
@@ -490,14 +506,13 @@
         timerInterval = setInterval(function() {
           currentTime--;
           updateTimerDisplay();
+          // Если время истекло, останавливаем таймер и показываем сообщение, оставляя уравнение активным.
           if (currentTime <= 0 && !timedOut) {
             timedOut = true;
             clearInterval(timerInterval);
             counter += timePunishment;
             updateCounter();
             resultP.textContent = "Время истекло! + " + timePunishment;
-            // Показываем кнопку "Следующий" вместо автоматического переключения
-            nextBtn.style.display = "inline-block";
           }
         }, 1000);
       }
@@ -572,6 +587,7 @@
     // 9. Функция проверки ответа пользователя
     // ====================================================
     function checkAnswer() {
+      // Не останавливаем таймер при неправильном ответе.
       if (testerMode) {
         resultP.textContent = "Режим тестера: ответ не проверяется. Пропуск уравнения.";
         setTimeout(() => { resultP.textContent = ""; generateEquation(); }, 500);
@@ -583,7 +599,6 @@
         return;
       }
       
-      clearInterval(timerInterval);
       const responseTime = (Date.now() - questionStartTime) / 1000;
       
       if (currentDifficulty === 6) {
@@ -600,10 +615,14 @@
         }
         if (Math.abs(userX - currentSolution.x) < 0.001 &&
             Math.abs(userY - currentSolution.y) < 0.001) {
+          clearInterval(timerInterval);
           resultP.textContent = "Верно!";
           correctTimes.push(responseTime);
           completedEquations.push({ equation: equationP.innerHTML, time: responseTime });
-          if (!testerMode) { counter--; updateCounter(); }
+          if (!testerMode && !timedOut) {
+            counter--;
+            updateCounter();
+          }
           answerInput.disabled = true;
           if (!testerMode && counter <= 0) {
             setTimeout(() => {
@@ -623,7 +642,6 @@
           incorrectTimes.push(responseTime);
           if (!testerMode) { counter += penalty; updateCounter(); }
           answerInput.value = "";
-          questionStartTime = Date.now();
           setTimeout(() => { resultP.textContent = ""; }, 1000);
         }
       
@@ -644,10 +662,14 @@
           let sortedSolution = solutionArray.slice().sort((a, b) => a - b);
           if (Math.abs(userRoots[0] - sortedSolution[0]) < 0.001 &&
               Math.abs(userRoots[1] - sortedSolution[1]) < 0.001) {
+            clearInterval(timerInterval);
             resultP.textContent = "Верно!";
             correctTimes.push(responseTime);
             completedEquations.push({ equation: equationP.textContent, time: responseTime });
-            if (!testerMode) { counter--; updateCounter(); }
+            if (!testerMode && !timedOut) {
+              counter--;
+              updateCounter();
+            }
             answerInput.disabled = true;
             if (!testerMode && counter <= 0) {
               setTimeout(() => {
@@ -667,15 +689,18 @@
             incorrectTimes.push(responseTime);
             if (!testerMode) { counter += penalty; updateCounter(); }
             answerInput.value = "";
-            questionStartTime = Date.now();
             setTimeout(() => { resultP.textContent = ""; }, 1000);
           }
         } else {
           if (Math.abs(userRoots[0] - solutionArray[0]) < 0.001) {
+            clearInterval(timerInterval);
             resultP.textContent = "Верно!";
             correctTimes.push(responseTime);
             completedEquations.push({ equation: equationP.textContent, time: responseTime });
-            if (!testerMode) { counter--; updateCounter(); }
+            if (!testerMode && !timedOut) {
+              counter--;
+              updateCounter();
+            }
             answerInput.disabled = true;
             if (!testerMode && counter <= 0) {
               setTimeout(() => {
@@ -695,7 +720,6 @@
             incorrectTimes.push(responseTime);
             if (!testerMode) { counter += penalty; updateCounter(); }
             answerInput.value = "";
-            questionStartTime = Date.now();
             setTimeout(() => { resultP.textContent = ""; }, 1000);
           }
         }
@@ -707,10 +731,14 @@
           return;
         }
         if (Math.abs(userAnswer - currentSolution) < 0.001) {
+          clearInterval(timerInterval);
           resultP.textContent = "Верно!";
           correctTimes.push(responseTime);
           completedEquations.push({ equation: equationP.textContent, time: responseTime });
-          if (!testerMode) { counter--; updateCounter(); }
+          if (!testerMode && !timedOut) {
+            counter--;
+            updateCounter();
+          }
           answerInput.disabled = true;
           if (!testerMode && counter <= 0) {
             setTimeout(() => {
@@ -730,7 +758,6 @@
           incorrectTimes.push(responseTime);
           if (!testerMode) { counter += penalty; updateCounter(); }
           answerInput.value = "";
-          questionStartTime = Date.now();
           setTimeout(() => { resultP.textContent = ""; }, 1000);
         }
       }
