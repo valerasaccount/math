@@ -471,19 +471,49 @@
           eqObj.solution = 0;
         } else {
           let sqrtDisc = Math.sqrt(disc);
-          let root1 = (-B + sqrtDisc) / (2 * A);
-          let root2 = (-B - sqrtDisc) / (2 * A);
+          let num1 = -B + sqrtDisc;
+          let num2 = -B - sqrtDisc;
+          let den = 2 * A;
           
-          // Если корни иррациональные (sqrtDisc не целое число), округляем до двух знаков после запятой.
-          if (sqrtDisc % 1 !== 0) {
-            root1 = Number(root1.toFixed(2));
-            root2 = Number(root2.toFixed(2));
+          function gcd(a, b) {
+            a = Math.abs(a);
+            b = Math.abs(b);
+            while (b) {
+              let temp = b;
+              b = a % b;
+              a = temp;
+            }
+            return a;
           }
           
-          if (Math.abs(root1 - root2) < 0.001) {
-            eqObj.solution = [root1];
+          if (sqrtDisc % 1 === 0) {
+            // Рациональные корни, представляем в виде сокращенной дроби.
+            function toFraction(numer, denom) {
+              let g = gcd(numer, denom);
+              numer = numer / g;
+              denom = denom / g;
+              if (denom < 0) {
+                numer = -numer;
+                denom = -denom;
+              }
+              return (denom === 1) ? `${numer}` : `${numer}/${denom}`;
+            }
+            let frac1 = toFraction(num1, den);
+            let frac2 = toFraction(num2, den);
+            if (frac1 === frac2) {
+              eqObj.solution = [frac1];
+            } else {
+              eqObj.solution = [frac1, frac2];
+            }
           } else {
-            eqObj.solution = [root1, root2];
+            // Иррациональные корни, округляем до двух знаков после запятой.
+            let root1 = Number((num1 / den).toFixed(2));
+            let root2 = Number((num2 / den).toFixed(2));
+            if (Math.abs(root1 - root2) < 0.001) {
+              eqObj.solution = [root1];
+            } else {
+              eqObj.solution = [root1, root2];
+            }
           }
         }
       }
@@ -515,7 +545,7 @@
         answerInput.placeholder = testerMode ? "Правильный ответ: " + getCorrectAnswer(randomEq.solution) : "Введите корни через запятую";
       } else if (currentDifficulty === 9) {
         equationP.textContent = randomEq.equation;
-        answerInput.placeholder = testerMode ? "Правильный ответ: " + getCorrectAnswer(randomEq.solution) : "Введите ответы через запятую";
+        answerInput.placeholder = testerMode ? "Правильный ответ: " + getCorrectAnswer(randomEq.solution) : "Введите ответы через запятую (в виде дроби, если возможно)";
       } else {
         equationP.textContent = randomEq.equation;
         answerInput.placeholder = testerMode ? "Правильный ответ: " + getCorrectAnswer(randomEq.solution) : "Введите значение";
@@ -750,11 +780,36 @@
         }
       
       } else if (currentDifficulty === 9) {
-        let userString = answerInput.value;
-        let userAnswers = userString.split(",").map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
+        // В ответе пользователя ожидается ввод дроби (например "1/3" или "2/5"), разделённых запятыми
+        let userInput = answerInput.value.split(",").map(item => item.trim()).filter(item => item !== "");
+        // Функция для приведения дроби к числовому значению
+        function fractionToNumber(frac) {
+          if (frac.includes("/")) {
+            let parts = frac.split("/");
+            if (parts.length === 2) {
+              let num = parseFloat(parts[0]);
+              let den = parseFloat(parts[1]);
+              if (!isNaN(num) && !isNaN(den) && den !== 0) {
+                return num / den;
+              }
+            }
+          }
+          // Если не дробь, пробуем как число
+          return parseFloat(frac.replace(",", "."));
+        }
+        let userAnswers = userInput.map(fractionToNumber).filter(n => !isNaN(n));
+  
         if (Array.isArray(currentSolution)) {
+          // Для проверки, преобразуем каждую дробь в число
           let sortedUser = [...userAnswers].sort((a, b) => a - b);
-          let sortedSolution = [...currentSolution].sort((a, b) => a - b);
+          // Для рациональных корней, сравнение производится по числовому значению
+          let sortedSolution = currentSolution.map(frac => {
+            if (typeof frac === "string" && frac.includes("/")) {
+              let parts = frac.split("/");
+              return parseFloat(parts[0]) / parseFloat(parts[1]);
+            }
+            return frac;
+          }).sort((a, b) => a - b);
           let correct = sortedUser.length === sortedSolution.length &&
                         sortedUser.every((val, i) => Math.abs(val - sortedSolution[i]) < 0.001);
           if (correct) {
