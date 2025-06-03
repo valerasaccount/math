@@ -112,7 +112,7 @@
       <option value="6">Уровень 6: Системное уравнение (две переменные: x и y)</option>
       <option value="7">Уровень 7: Дробное уравнение ((x ± a)/b = c)</option>
       <option value="8">Уровень 8: Квадратное уравнение (a*x² + b*x + c = 0)</option>
-      <option value="9">Уровень 9: Уравнение со скобками ( (ax+b)(cx+d) = (ex+f)(gx+h) )</option>
+      <option value="9">Уровень 9: Уравнение со скобками ( (ax+b)(cx+d)=e )</option>
     </select>
     <br><br>
     <button id="startGameBtn">Начать игру</button>
@@ -224,9 +224,6 @@
     function formatConstTerm(value) {
       return (value >= 0) ? value.toString() : "-" + Math.abs(value).toString();
     }
-    function formatSigned(value) {
-      return value >= 0 ? ("+ " + value) : ("- " + Math.abs(value));
-    }
   </script>
   <script>
     // ====================================================
@@ -235,93 +232,252 @@
     function generateRandomEquationByDifficulty(difficulty) {
       let eqObj = { equation: "", solution: null };
       
-      // ... Уровни 1-8 без изменений ...
-
-      if (difficulty === 9) {
-        // Новый уровень 9: (ax + b)(cx + d) = (ex + f)(gx + h)
-        // Каждый коэффициент != 0, != 1, != -1 и все разные
-        let a, b, c, d, e, f, g, h;
-        let valuesUsed = new Set();
-
-        function getUniqueCoef(minAbs = 2, maxAbs = 10) {
-          let v;
-          let tries = 0;
-          do {
-            v = Math.floor(Math.random() * (2 * maxAbs + 1)) - maxAbs; // -maxAbs..maxAbs
-            tries++;
-            // Проверка: не 0, не 1, не -1, и не совпадает по модулю ни с одним из уже выбранных
-          } while (
-            (Math.abs(v) < minAbs) ||
-            valuesUsed.has(v) ||
-            valuesUsed.has(-v) ||
-            tries > 100
-          );
-          valuesUsed.add(v);
-          return v;
+      if (difficulty === 1) {
+        let a, xSolution, b, c;
+        do {
+          a = Math.floor(Math.random() * 9) + 2;
+          if (Math.random() < 0.5) { a = -a; }
+          xSolution = Math.floor(Math.random() * 11);
+          b = (Math.random() < 0.5) ? Math.floor(Math.random() * 20) + 1
+                                    : - (Math.floor(Math.random() * 20) + 1);
+          c = a * xSolution + b;
+        } while (b === 0 || Math.abs(b) === Math.abs(a) ||
+                 Math.abs(a) === 1 || Math.abs(c) === Math.abs(a) ||
+                 Math.abs(c) === Math.abs(b) || Math.abs(c) === xSolution);
+        let termVar = formatVarTerm(a, "x");
+        let left = (Math.random() < 0.5)
+          ? (formatConstTerm(b) + " + " + termVar)
+          : (termVar + (b >= 0 ? " + " + b : " - " + Math.abs(b)));
+        eqObj.equation = left + " = " + c;
+        eqObj.solution = xSolution;
+      
+      } else if (difficulty === 2) {
+        let a, d, xSolution, B, C;
+        do {
+          a = Math.floor(Math.random() * 9) + 2;
+          if (Math.random() < 0.5) { a = -a; }
+          do { d = Math.floor(Math.random() * 9) + 2; if (Math.random() < 0.5) { d = -d; } }
+          while (Math.abs(d) === Math.abs(a));
+          xSolution = Math.floor(Math.random() * 11);
+          B = (Math.random() < 0.5) ? Math.floor(Math.random() * 21) : -Math.floor(Math.random() * 21);
+          C = (a - d) * xSolution + B;
+        } while (B === 0 || Math.abs(B) === Math.abs(a) ||
+                 Math.abs(a) === 1 || Math.abs(d) === 1 ||
+                 Math.abs(a) === xSolution || Math.abs(d) === xSolution ||
+                 Math.abs(B) === xSolution || Math.abs(C) === xSolution);
+        let leftTermVar = formatVarTerm(a, "x");
+        let rightTermVar = formatVarTerm(d, "x");
+        let leftSide = (Math.random() < 0.5)
+          ? (formatConstTerm(B) + " + " + leftTermVar)
+          : (leftTermVar + (B === 0 ? "" : (B >= 0 ? " + " + B : " - " + Math.abs(B))));
+        let rightSide = (Math.random() < 0.5)
+          ? (formatConstTerm(C) + " + " + rightTermVar)
+          : (rightTermVar + (C === 0 ? "" : (C >= 0 ? " + " + C : " - " + Math.abs(C))));
+        eqObj.equation = leftSide + " = " + rightSide;
+        eqObj.solution = xSolution;
+      
+      } else if (difficulty === 3) {
+        let a, xSolution, b, c;
+        do {
+          a = Math.floor(Math.random() * 9) + 2;
+          if (Math.random() < 0.5) { a = -a; }
+          xSolution = Math.floor(Math.random() * 11);
+          b = (Math.random() < 0.5)
+              ? Math.floor(Math.random() * 21)
+              : -Math.floor(Math.random() * 21);
+          c = a * (xSolution + b);
+        } while (b === 0 || Math.abs(b) === Math.abs(a) ||
+                 Math.abs(a) === 1 || Math.abs(a) === xSolution || Math.abs(b) === xSolution);
+        let normalInner = (b === 0) ? "x" : (b > 0 ? "x + " + b : "x - " + Math.abs(b));
+        let swappedInner = (b === 0) ? "x" : (formatConstTerm(b) + " + x");
+        let inner = (Math.random() < 0.5) ? swappedInner : normalInner;
+        let aStr = (Math.abs(a) === 1) ? "" : a.toString();
+        eqObj.equation = aStr + "(" + inner + ") = " + c;
+        eqObj.solution = xSolution;
+      
+      } else if (difficulty === 4) {
+        let d, k, xSolution, b, c;
+        d = Math.floor(Math.random() * 8) + 2;
+        if (Math.random() < 0.5) { d = -d; }
+        k = Math.floor(Math.random() * 11) - 5;
+        xSolution = d * k;
+        do {
+          b = (Math.random() < 0.5)
+              ? Math.floor(Math.random() * 21)
+              : -Math.floor(Math.random() * 21);
+        } while (b === 0 || Math.abs(b) === Math.abs(xSolution));
+        c = k + b;
+        let baseStr = "1/" + d + "x";
+        let normalLeft = baseStr + (b === 0 ? "" : (b >= 0 ? " + " + b : " - " + Math.abs(b)));
+        let swappedLeft = (b === 0) ? baseStr : (formatConstTerm(b) + " + " + baseStr);
+        let left = (Math.random() < 0.5) ? swappedLeft : normalLeft;
+        eqObj.equation = left + " = " + c;
+        eqObj.solution = xSolution;
+      
+      } else if (difficulty === 5) {
+        let a, d, xSolution, b, c_const, e, f_const;
+        do {
+          a = Math.floor(Math.random() * 9) + 2;
+          if (Math.random() < 0.5) { a = -a; }
+          do { d = Math.floor(Math.random() * 9) + 2; if (Math.random() < 0.5) { d = -d; } }
+          while (Math.abs(d) === Math.abs(a));
+          xSolution = Math.floor(Math.random() * 21) - 10;
+          b = (Math.random() < 0.5) ? Math.floor(Math.random() * 21) : -Math.floor(Math.random() * 21);
+          c_const = (Math.random() < 0.5) ? Math.floor(Math.random() * 21) : -Math.floor(Math.random() * 21);
+          e = (Math.random() < 0.5) ? Math.floor(Math.random() * 21) : -Math.floor(Math.random() * 21);
+          f_const = (Math.random() < 0.5) ? Math.floor(Math.random() * 21) : -Math.floor(Math.random() * 21);
+        } while (
+          b === 0 || c_const === 0 || e === 0 || f_const === 0 ||
+          Math.abs(b) === Math.abs(a) ||
+          Math.abs(a) === 1 || Math.abs(d) === 1 ||
+          Math.abs(a) === Math.abs(xSolution) || Math.abs(d) === Math.abs(xSolution) ||
+          Math.abs(b) === Math.abs(xSolution) || Math.abs(c_const) === Math.abs(xSolution) ||
+          Math.abs(e) === Math.abs(xSolution) || Math.abs(f_const) === Math.abs(xSolution)
+        );
+        let normalInnerL = (b === 0) ? "x" : (b > 0 ? "x + " + b : "x - " + Math.abs(b));
+        let swappedInnerL = (b === 0) ? "x" : (formatConstTerm(b) + " + x");
+        let innerL = (Math.random() < 0.5) ? swappedInnerL : normalInnerL;
+        let leftTerm = (Math.abs(a) === 1) ? innerL : a + "(" + innerL + ")";
+        let normalLeft = leftTerm + (c_const === 0 ? "" : (c_const > 0 ? " + " + c_const : " - " + Math.abs(c_const)));
+        let swappedLeft = (c_const === 0) ? leftTerm : (formatConstTerm(c_const) + " + " + leftTerm);
+        let leftExpr = (Math.random() < 0.5) ? swappedLeft : normalLeft;
+        
+        let normalInnerR = (e === 0) ? "x" : (e > 0 ? "x + " + e : "x - " + Math.abs(e));
+        let swappedInnerR = (e === 0) ? "x" : (formatConstTerm(e) + " + x");
+        let innerR = (Math.random() < 0.5) ? swappedInnerR : normalInnerR;
+        let rightTerm = (Math.abs(d) === 1) ? innerR : d + "(" + innerR + ")";
+        let normalRight = rightTerm + (f_const === 0 ? "" : (f_const > 0 ? " + " + f_const : " - " + Math.abs(f_const)));
+        let swappedRight = (f_const === 0) ? rightTerm : (formatConstTerm(f_const) + " + " + rightTerm);
+        let rightExpr = (Math.random() < 0.5) ? swappedRight : normalRight;
+        
+        eqObj.equation = leftExpr + " = " + rightExpr;
+        eqObj.solution = xSolution;
+      
+      } else if (difficulty === 6) {
+        let xSolution = Math.floor(Math.random() * 21) - 10;
+        let ySolution = Math.floor(Math.random() * 21) - 10;
+        let a1, b1, a2, b2;
+        do {
+          a1 = Math.floor(Math.random() * 9) + 2;
+          if (Math.random() < 0.5) { a1 = -a1; }
+          b1 = Math.floor(Math.random() * 21) - 10;
+          a2 = Math.floor(Math.random() * 9) + 2;
+          if (Math.random() < 0.5) { a2 = -a2; }
+          b2 = Math.floor(Math.random() * 21) - 10;
+        } while (a1 * b2 - a2 * b1 === 0);
+        let c1 = a1 * xSolution + b1 * ySolution;
+        let c2 = a2 * xSolution + b2 * ySolution;
+        function formatTerm(coefficient, variable) {
+          if (coefficient === 1) return variable;
+          if (coefficient === -1) return "-" + variable;
+          return coefficient + variable;
         }
-
-        a = getUniqueCoef();
-        b = getUniqueCoef();
-        c = getUniqueCoef();
-        d = getUniqueCoef();
-        e = getUniqueCoef();
-        f = getUniqueCoef();
-        g = getUniqueCoef();
-        h = getUniqueCoef();
-
-        // Теперь раскрываем скобки для обеих частей:
-        // (ax+b)(cx+d) = acx^2 + (ad+bc)x + bd
-        // (ex+f)(gx+h) = egx^2 + (eh+fg)x + fh
-        let A = a * c;
-        let B = a * d + b * c;
-        let C = b * d;
-        let D = e * g;
-        let E = e * h + f * g;
-        let F = f * h;
-
-        // Переводим всё в одну часть: (A-D)x^2 + (B-E)x + (C-F) = 0
-        let quad = A - D;
-        let lin = B - E;
-        let constTerm = C - F;
-
-        // Решаем квадратное уравнение quad*x^2 + lin*x + constTerm = 0
-        // (quad != 0, так как коэффициенты все разные)
-        let disc = lin * lin - 4 * quad * constTerm;
-        let roots = [];
-        if (disc >= 0) {
-          let sqrtDisc = Math.sqrt(disc);
-          let root1 = (-lin + sqrtDisc) / (2 * quad);
-          let root2 = (-lin - sqrtDisc) / (2 * quad);
-          if (Math.abs(root1 - root2) < 0.001) {
-            roots = [root1];
+        let eq1 = formatTerm(a1, "x") + (b1 >= 0 ? " + " + b1 + "y" : " - " + Math.abs(b1) + "y") + " = " + c1;
+        let eq2 = formatTerm(a2, "x") + (b2 >= 0 ? " + " + b2 + "y" : " - " + Math.abs(b2) + "y") + " = " + c2;
+        eqObj.equation = eq1 + "<br>" + eq2;
+        eqObj.solution = { x: xSolution, y: ySolution };
+      
+      } else if (difficulty === 7) {
+        let b;
+        do { b = Math.floor(Math.random() * 21) - 10; } while (b === 0);
+        let a = Math.floor(Math.random() * 21) - 10;
+        let c = Math.floor(Math.random() * 21) - 10;
+        let xSolution = c * b - a;
+        let inner;
+        if (a === 0) { inner = "x"; }
+        else if (a > 0) { inner = "x + " + a; }
+        else { inner = "x - " + Math.abs(a); }
+        eqObj.equation = "(" + inner + ")/" + b + " = " + c;
+        eqObj.solution = xSolution;
+      
+      } else if (difficulty === 8) {
+        let a = Math.floor(Math.random() * 9) + 1;
+        let r1 = Math.floor(Math.random() * 21) - 10;
+        let r2 = Math.floor(Math.random() * 21) - 10;
+        let bCoeff = -a * (r1 + r2);
+        let cCoeff = a * r1 * r2;
+        function formatCoeff(coefficient, variable, isFirst) {
+          if (coefficient === 0) return "";
+          if (isFirst) {
+            if (coefficient === 1) return variable;
+            if (coefficient === -1) return "-" + variable;
+            return coefficient + variable;
           } else {
-            roots = [root1, root2];
+            if (coefficient > 0) {
+              if (coefficient === 1) return " + " + variable;
+              return " + " + coefficient + variable;
+            } else {
+              if (coefficient === -1) return " - " + variable;
+              return " - " + Math.abs(coefficient) + variable;
+            }
           }
+        }
+        let eqStr = "";
+        eqStr += (a === 1) ? "x²" : a + "x²";
+        eqStr += formatCoeff(bCoeff, "x", false);
+        if (cCoeff > 0) { eqStr += " + " + cCoeff; }
+        else if (cCoeff < 0) { eqStr += " - " + Math.abs(cCoeff); }
+        eqStr += " = 0";
+        eqObj.equation = eqStr;
+        eqObj.solution = (r1 === r2) ? [r1] : [r1, r2];
+      
+      } else if (difficulty === 9) {
+        // Новый уровень 9: уравнение вида (ax+b)(cx+d)=e, которое раскрывается в квадратное уравнение.
+        // Значения a, b, c, d, e не должны быть 0 или ±1, и их абсолютные значения должны быть все различны.
+        let a, b, c, d, k, e, A, B, C, disc;
+        while (true) {
+          // Генерируем a, b, c, d с абсолютным значением не меньше 2
+          a = Math.floor(Math.random() * 11) - 5;
+          if (Math.abs(a) < 2) a = a < 0 ? -2 : 2;
+          
+          c = Math.floor(Math.random() * 11) - 5;
+          if (Math.abs(c) < 2) c = c < 0 ? -3 : 3;
+          
+          b = Math.floor(Math.random() * 21) - 10;
+          if (Math.abs(b) < 2) b = b < 0 ? -2 : 2;
+          
+          d = Math.floor(Math.random() * 21) - 10;
+          if (Math.abs(d) < 2) d = d < 0 ? -3 : 3;
+          
+          // Проверяем, чтобы абсолютные значения a, b, c, d были уникальны
+          let uniqueAbs = new Set([Math.abs(a), Math.abs(b), Math.abs(c), Math.abs(d)]);
+          if (uniqueAbs.size !== 4) continue;
+          
+          // k выбирается из диапазона [1,5]
+          k = Math.floor(Math.random() * 5) + 1;
+          // Определяем e как b*d - k
+          e = b * d - k;
+          if (Math.abs(e) < 2) continue;
+          
+          // Проверяем, что абсолютное значение e отличается от остальных
+          uniqueAbs.add(Math.abs(e));
+          if (uniqueAbs.size !== 5) continue;
+          
+          // Вычисляем коэффициенты раскрытия: A = a*c, B = a*d + b*c, C = k.
+          A = a * c;
+          B = a * d + b * c;
+          C = k;
+          disc = B * B - 4 * A * C;
+          if (disc < 0) continue;
+          
+          // Нашли подходящие значения
+          break;
+        }
+        // Вычисляем корни квадратного уравнения (для информации)
+        let sqrtDisc = Math.sqrt(disc);
+        let root1 = (-B + sqrtDisc) / (2 * A);
+        let root2 = (-B - sqrtDisc) / (2 * A);
+        // Формируем строку уравнения вида (ax+b)(cx+d)=e
+        eqObj.equation = "(" + a + "x " + (b >= 0 ? "+ " + b : "- " + Math.abs(b)) + ")" +
+                         "(" + c + "x " + (d >= 0 ? "+ " + d : "- " + Math.abs(d)) + ") = " + e;
+        // Сохраняем корни как решение (с проверкой на совпадение)
+        if (Math.abs(root1 - root2) < 0.001) {
+          eqObj.solution = [root1];
         } else {
-          // Практически невозможно при случайных коэффах, но если вдруг, пересоздадим
-          return generateRandomEquationByDifficulty(9);
+          eqObj.solution = [root1, root2];
         }
-
-        function termStrA(a, variable) {
-          if (a === 1) return variable;
-          if (a === -1) return "-" + variable;
-          return a + "x";
-        }
-        function termStrB(b) {
-          return b >= 0 ? "+ " + b : "- " + Math.abs(b);
-        }
-
-        let left = "(" + termStrA(a, "x") + " " + termStrB(b) + ")";
-        let left2 = "(" + termStrA(c, "x") + " " + termStrB(d) + ")";
-        let right = "(" + termStrA(e, "x") + " " + termStrB(f) + ")";
-        let right2 = "(" + termStrA(g, "x") + " " + termStrB(h) + ")";
-
-        eqObj.equation = left + left2 + " = " + right + right2;
-        eqObj.solution = roots;
       }
-
-      // ... остальные уровни без изменений ...
-
+      
       return eqObj;
     }
     
@@ -343,7 +499,7 @@
       if (currentDifficulty === 6) {
         equationP.innerHTML = randomEq.equation;
         answerInput.placeholder = "Введите x и y через запятую";
-      } else if (currentDifficulty === 8 || currentDifficulty === 9) {
+      } else if (currentDifficulty === 8) {
         equationP.textContent = randomEq.equation;
         answerInput.placeholder = "Введите корни через запятую";
       } else {
@@ -497,7 +653,7 @@
           setTimeout(() => { resultP.textContent = ""; }, 1000);
         }
       
-      } else if (currentDifficulty === 8 || currentDifficulty === 9) {
+      } else if (currentDifficulty === 8) {
         let parts = answerInput.value.split(",");
         let userRoots = parts.map(p => parseFloat(p.trim())).filter(v => !isNaN(v));
         let solutionArray = currentSolution;
@@ -516,8 +672,8 @@
               Math.abs(userRoots[1] - sortedSolution[1]) < 0.001) {
             clearInterval(timerInterval);
             resultP.textContent = "Верно!";
-            completedEquations.push({ equation: equationP.textContent, time: responseTime });
             correctTimes.push(responseTime);
+            completedEquations.push({ equation: equationP.textContent, time: responseTime });
             if (!testerMode && !timedOut) {
               counter--;
               updateCounter();
@@ -547,8 +703,8 @@
           if (Math.abs(userRoots[0] - solutionArray[0]) < 0.001) {
             clearInterval(timerInterval);
             resultP.textContent = "Верно!";
-            completedEquations.push({ equation: equationP.textContent, time: responseTime });
             correctTimes.push(responseTime);
+            completedEquations.push({ equation: equationP.textContent, time: responseTime });
             if (!testerMode && !timedOut) {
               counter--;
               updateCounter();
