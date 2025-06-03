@@ -224,6 +224,19 @@
     function formatConstTerm(value) {
       return (value >= 0) ? value.toString() : "-" + Math.abs(value).toString();
     }
+    
+    // Функция получения строки с правильным ответом
+    function getCorrectAnswer(solution) {
+      if (solution === null) return "";
+      if (typeof solution === "object") {
+        if (solution.hasOwnProperty("x") && solution.hasOwnProperty("y")) {
+          return "x: " + solution.x + ", y: " + solution.y;
+        } else if (Array.isArray(solution)) {
+          return solution.join(", ");
+        }
+      }
+      return solution.toString();
+    }
   </script>
   <script>
     // ====================================================
@@ -497,31 +510,19 @@
       
       const randomEq = generateRandomEquationByDifficulty(currentDifficulty);
       
+      // Отобразить уравнение и задать placeholder в зависимости от сложности
       if (currentDifficulty === 6) {
         equationP.innerHTML = randomEq.equation;
-        answerInput.placeholder = "Введите x и y через запятую";
+        answerInput.placeholder = testerMode ? "Правильный ответ: " + getCorrectAnswer(randomEq.solution) : "Введите x и y через запятую";
       } else if (currentDifficulty === 8) {
         equationP.textContent = randomEq.equation;
-        answerInput.placeholder = "Введите корни через запятую";
+        answerInput.placeholder = testerMode ? "Правильный ответ: " + getCorrectAnswer(randomEq.solution) : "Введите корни через запятую";
       } else if (currentDifficulty === 9) {
         equationP.textContent = randomEq.equation;
-        // Если режим тестера включен, показываем количество ответов, иначе просто пример ввода.
-        if (testerMode) {
-          let answerCount = 1;
-          if (Array.isArray(randomEq.solution)) {
-            answerCount = randomEq.solution.length;
-          }
-          // Формат: если один ответ, например "Ожидается 1 ответ: Например: 1: 3.5"
-          // Если два ответа, например "Ожидается 2 ответа: Например: 2: 3, 5"
-          answerInput.placeholder = (answerCount === 1)
-            ? "Ожидается 1 ответ: Например: 1: 3.5"
-            : `Ожидается ${answerCount} ответа: Например: ${answerCount}: 3, 5`;
-        } else {
-          answerInput.placeholder = "Например: 2: 3, 5";
-        }
+        answerInput.placeholder = testerMode ? "Правильный ответ: " + getCorrectAnswer(randomEq.solution) : "Например: 2: 3, 5";
       } else {
         equationP.textContent = randomEq.equation;
-        answerInput.placeholder = "Введите значение";
+        answerInput.placeholder = testerMode ? "Правильный ответ: " + getCorrectAnswer(randomEq.solution) : "Введите значение";
       }
       
       currentSolution = randomEq.solution;
@@ -612,8 +613,9 @@
     // ====================================================
     function checkAnswer() {
       if (testerMode) {
-        resultP.textContent = "Режим тестера: ответ не проверяется. Пропуск уравнения.";
-        setTimeout(() => { resultP.textContent = ""; generateEquation(); }, 500);
+        // В тестовом режиме ответ не проверяется.
+        resultP.textContent = "Режим тестера активен. Пропуск проверки ответа.";
+        setTimeout(() => { resultP.textContent = ""; generateEquation(); }, 1500);
         return;
       }
       
