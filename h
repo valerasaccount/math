@@ -515,7 +515,7 @@
         answerInput.placeholder = testerMode ? "Правильный ответ: " + getCorrectAnswer(randomEq.solution) : "Введите корни через запятую";
       } else if (currentDifficulty === 9) {
         equationP.textContent = randomEq.equation;
-        answerInput.placeholder = testerMode ? "Правильный ответ: " + getCorrectAnswer(randomEq.solution) : "кол. ответов: ответ(ы) через запятую и пробел";
+        answerInput.placeholder = testerMode ? "Правильный ответ: " + getCorrectAnswer(randomEq.solution) : "Введите ответы через запятую";
       } else {
         equationP.textContent = randomEq.equation;
         answerInput.placeholder = testerMode ? "Правильный ответ: " + getCorrectAnswer(randomEq.solution) : "Введите значение";
@@ -712,7 +712,12 @@
             setTimeout(() => { resultP.textContent = ""; }, 1000);
           }
         } else {
-          if (Math.abs(userRoots[0] - solutionArray[0]) < 0.001) {
+          if (userAnswers.length !== 1) {
+            resultP.textContent = "Ожидается один ответ.";
+            return;
+          }
+          let userAnswer = userAnswers[0];
+          if (Math.abs(userAnswer - currentSolution) < 0.001) {
             clearInterval(timerInterval);
             resultP.textContent = "Верно!";
             correctTimes.push(responseTime);
@@ -746,37 +751,12 @@
       
       } else if (currentDifficulty === 9) {
         let userString = answerInput.value;
-        let parts = userString.split(":");
-        if (parts.length !== 2) {
-          resultP.textContent = "Формат ответа должен быть 'количество ответов: ответ(ы)'.";
-          return;
-        }
-        let answerCount = parseInt(parts[0].trim());
-        if (isNaN(answerCount)) {
-          resultP.textContent = "Неверное значение количества ответов.";
-          return;
-        }
-        let answersPart = parts[1].trim();
-        let userAnswers = answersPart.split(",").map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
-        if (userAnswers.length !== answerCount) {
-          resultP.textContent = "Количество введённых ответов не соответствует указанному количеству.";
-          return;
-        }
-        
+        let userAnswers = userString.split(",").map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
         if (Array.isArray(currentSolution)) {
           let sortedUser = [...userAnswers].sort((a, b) => a - b);
           let sortedSolution = [...currentSolution].sort((a, b) => a - b);
-          let correct = true;
-          if (sortedUser.length !== sortedSolution.length) {
-            correct = false;
-          } else {
-            for (let i = 0; i < sortedUser.length; i++) {
-              if (Math.abs(sortedUser[i] - sortedSolution[i]) > 0.001) {
-                correct = false;
-                break;
-              }
-            }
-          }
+          let correct = sortedUser.length === sortedSolution.length &&
+                        sortedUser.every((val, i) => Math.abs(val - sortedSolution[i]) < 0.001);
           if (correct) {
             clearInterval(timerInterval);
             resultP.textContent = "Верно!";
@@ -808,7 +788,7 @@
             setTimeout(() => { resultP.textContent = ""; }, 1000);
           }
         } else {
-          if (answerCount !== 1) {
+          if (userAnswers.length !== 1) {
             resultP.textContent = "Ожидается один ответ.";
             return;
           }
