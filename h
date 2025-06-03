@@ -505,15 +505,19 @@
         answerInput.placeholder = "Введите корни через запятую";
       } else if (currentDifficulty === 9) {
         equationP.textContent = randomEq.equation;
-        // Теперь в уровне 9 ожидается формат "количество ответов: ответ(ы)"
-        if (Array.isArray(randomEq.solution)) {
-          if (randomEq.solution.length > 1) {
-            answerInput.placeholder = "Например: 2: 3.5, 7.6";
-          } else {
-            answerInput.placeholder = "Например: 1: 3.5";
+        // Если режим тестера включен, показываем количество ответов, иначе просто пример ввода.
+        if (testerMode) {
+          let answerCount = 1;
+          if (Array.isArray(randomEq.solution)) {
+            answerCount = randomEq.solution.length;
           }
+          // Формат: если один ответ, например "Ожидается 1 ответ: Например: 1: 3.5"
+          // Если два ответа, например "Ожидается 2 ответа: Например: 2: 3, 5"
+          answerInput.placeholder = (answerCount === 1)
+            ? "Ожидается 1 ответ: Например: 1: 3.5"
+            : `Ожидается ${answerCount} ответа: Например: ${answerCount}: 3, 5`;
         } else {
-          answerInput.placeholder = "Например: 1: 0";
+          answerInput.placeholder = "Например: 2: 3, 5";
         }
       } else {
         equationP.textContent = randomEq.equation;
@@ -620,7 +624,6 @@
       
       const responseTime = (Date.now() - questionStartTime) / 1000;
       
-      // Обработка уровня 6
       if (currentDifficulty === 6) {
         let userInput = answerInput.value.split(",");
         if (userInput.length !== 2) {
@@ -665,7 +668,6 @@
           setTimeout(() => { resultP.textContent = ""; }, 1000);
         }
       
-      // Обработка уровня 8
       } else if (currentDifficulty === 8) {
         let parts = answerInput.value.split(",");
         let userRoots = parts.map(p => parseFloat(p.trim())).filter(v => !isNaN(v));
@@ -745,9 +747,8 @@
           }
         }
       
-      // Обработка уровня 9 с требуемым форматом "количество ответов: ответ(ы)"
       } else if (currentDifficulty === 9) {
-        // Ожидаемый формат: "N: a, b, ..." где N - число ответов
+        // Обрабатываем формат ответа "количество ответов: ответ(ы)"
         let userString = answerInput.value;
         let parts = userString.split(":");
         if (parts.length !== 2) {
@@ -767,7 +768,6 @@
         }
         
         if (Array.isArray(currentSolution)) {
-          // Если ожидается несколько корней
           let sortedUser = [...userAnswers].sort((a, b) => a - b);
           let sortedSolution = [...currentSolution].sort((a, b) => a - b);
           let correct = true;
@@ -812,7 +812,6 @@
             setTimeout(() => { resultP.textContent = ""; }, 1000);
           }
         } else {
-          // Если ожидается один ответ
           if (answerCount !== 1) {
             resultP.textContent = "Ожидается один ответ.";
             return;
@@ -850,7 +849,6 @@
           }
         }
       
-      // Обработка остальных уровней
       } else {
         let userAnswer = parseFloat(answerInput.value);
         if (isNaN(userAnswer)) {
