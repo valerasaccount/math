@@ -327,44 +327,49 @@
         eqObj.equation = left + " = " + c;
         eqObj.solution = xSolution;
       
-      } else if (difficulty === 5) {
-        let a, d, xSolution, b, c_const, e, f_const;
-        do {
-          a = Math.floor(Math.random() * 9) + 2;
-          if (Math.random() < 0.5) { a = -a; }
-          do { d = Math.floor(Math.random() * 9) + 2; if (Math.random() < 0.5) { d = -d; } }
-          while (Math.abs(d) === Math.abs(a));
-          xSolution = Math.floor(Math.random() * 21) - 10;
-          b = (Math.random() < 0.5) ? Math.floor(Math.random() * 21) : -Math.floor(Math.random() * 21);
-          c_const = (Math.random() < 0.5) ? Math.floor(Math.random() * 21) : -Math.floor(Math.random() * 21);
-          e = (Math.random() < 0.5) ? Math.floor(Math.random() * 21) : -Math.floor(Math.random() * 21);
-          f_const = (Math.random() < 0.5) ? Math.floor(Math.random() * 21) : -Math.floor(Math.random() * 21);
-        } while (
-          b === 0 || c_const === 0 || e === 0 || f_const === 0 ||
-          Math.abs(b) === Math.abs(a) ||
-          Math.abs(a) === 1 || Math.abs(d) === 1 ||
-          Math.abs(a) === Math.abs(xSolution) || Math.abs(d) === Math.abs(xSolution) ||
-          Math.abs(b) === Math.abs(xSolution) || Math.abs(c_const) === Math.abs(xSolution) ||
-          Math.abs(e) === Math.abs(xSolution) || Math.abs(f_const) === Math.abs(xSolution)
-        );
-        let normalInnerL = (b === 0) ? "x" : (b > 0 ? "x + " + b : "x - " + Math.abs(b));
-        let swappedInnerL = (b === 0) ? "x" : (formatConstTerm(b) + " + x");
-        let innerL = (Math.random() < 0.5) ? swappedInnerL : normalInnerL;
-        let leftTerm = (Math.abs(a) === 1) ? innerL : a + "(" + innerL + ")";
-        let normalLeft = leftTerm + (c_const === 0 ? "" : (c_const > 0 ? " + " + c_const : " - " + Math.abs(c_const)));
-        let swappedLeft = (c_const === 0) ? leftTerm : (formatConstTerm(c_const) + " + " + leftTerm);
-        let leftExpr = (Math.random() < 0.5) ? swappedLeft : normalLeft;
-        
-        let normalInnerR = (e === 0) ? "x" : (e > 0 ? "x + " + e : "x - " + Math.abs(e));
-        let swappedInnerR = (e === 0) ? "x" : (formatConstTerm(e) + " + x");
-        let innerR = (Math.random() < 0.5) ? swappedInnerR : normalInnerR;
-        let rightTerm = (Math.abs(d) === 1) ? innerR : d + "(" + innerR + ")";
-        let normalRight = rightTerm + (f_const === 0 ? "" : (f_const > 0 ? " + " + f_const : " - " + Math.abs(f_const)));
-        let swappedRight = (f_const === 0) ? rightTerm : (formatConstTerm(f_const) + " + " + rightTerm);
-        let rightExpr = (Math.random() < 0.5) ? swappedRight : normalRight;
-        
-        eqObj.equation = leftExpr + " = " + rightExpr;
-        eqObj.solution = xSolution;
+    } else if (difficulty === 5) {
+      // Новый вариант для уравнения вида: a*(x ± b) ± c = d*(x ± e) ± f,
+      // чтобы решение уравнения было точно равно xSolution.
+      // Генерируем a и d, где a и d не равны по модулю.
+      let a = Math.floor(Math.random() * 8) + 2; // значение от 2 до 9
+      if (Math.random() < 0.5) { a = -a; }
+      let d;
+      do {
+        d = Math.floor(Math.random() * 8) + 2;
+        if (Math.random() < 0.5) { d = -d; }
+      } while (Math.abs(d) === Math.abs(a));
+      
+      // Выбираем знак для выражения внутри скобок
+      let s1 = (Math.random() < 0.5) ? 1 : -1;
+      let s2 = (Math.random() < 0.5) ? 1 : -1;
+      
+      // Выбираем b и e как положительные целые числа
+      let b = Math.floor(Math.random() * 15) + 1;
+      let e = Math.floor(Math.random() * 15) + 1;
+      
+      // Выбираем решение. Чтобы получать и нецелые ответы (например, 6.5), округляем до половины.
+      let xSolution = (Math.floor(Math.random() * 41) - 20) / 2;
+      
+      // Выбираем случайное число c (не равное 0)
+      let c;
+      do {
+        c = Math.floor(Math.random() * 41) - 20;
+      } while (c === 0);
+      
+      // Вычисляем f так, чтобы при подстановке xSolution уравнение было верно:
+      // a*(xSolution + s1*b) + c = d*(xSolution + s2*e) + f   =>   f = a*(xSolution + s1*b) + c - d*(xSolution + s2*e)
+      let f = a * (xSolution + s1 * b) + c - d * (xSolution + s2 * e);
+      
+      // Формируем строковое представление уравнения.
+      // Форматируем левую часть: например, "2(x - 11) + 12" (если a=2, s1=-1, b=11, c=12)
+      let leftExpr = (Math.abs(a) === 1 ? "" : a.toString()) + "(x " + (s1 === -1 ? "- " : "+ ") + b + ")"
+                     + (c >= 0 ? " + " + c : " - " + Math.abs(c));
+      // Формируем правую часть: например, "10(x - 6) - 2" (если d=10, s2=-1, e=6, f=-2)
+      let rightExpr = (Math.abs(d) === 1 ? "" : d.toString()) + "(x " + (s2 === -1 ? "- " : "+ ") + e + ")"
+                     + (f >= 0 ? " + " + f : " - " + Math.abs(f));
+      
+      eqObj.equation = leftExpr + " = " + rightExpr;
+      eqObj.solution = xSolution; 
       
       } else if (difficulty === 6) {
         let xSolution = Math.floor(Math.random() * 21) - 10;
