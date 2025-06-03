@@ -112,7 +112,7 @@
       <option value="6">Уровень 6: Системное уравнение (две переменные: x и y)</option>
       <option value="7">Уровень 7: Дробное уравнение ((x ± a)/b = c)</option>
       <option value="8">Уровень 8: Квадратное уравнение (a*x² + b*x + c = 0)</option>
-      <option value="9">Уровень 9: Уравнение со скобками ( (ax+b)(cx+d)=e )</option>
+      <option value="9">Уровень 9: Уравнение со скобками ((ax+b)(cx+d) = (ex+f)(gx+h))</option>
     </select>
     <br><br>
     <button id="startGameBtn">Начать игру</button>
@@ -422,55 +422,63 @@
         eqObj.solution = (r1 === r2) ? [r1] : [r1, r2];
       
       } else if (difficulty === 9) {
-        // Новый уровень 9: уравнение вида (ax+b)(cx+d)=e, которое раскрывается в квадратное уравнение.
-        // Значения a, b, c, d, e не должны быть 0 или ±1, и их абсолютные значения должны быть все различны.
-        let a, b, c, d, k, e, A, B, C, disc;
-        while (true) {
-          // Генерируем a, b, c, d с абсолютным значением не меньше 2
-          a = Math.floor(Math.random() * 11) - 5;
-          if (Math.abs(a) < 2) a = a < 0 ? -2 : 2;
+        // Новый уровень 9: уравнение вида (ax+b)(cx+d) = (ex+f)(gx+h)
+        // Из-за строгих ограничений предыдущая версия не генерировала подходящие коэффициенты.
+        // Здесь мы используем расширенный диапазон и лимит попыток.
+        let a, b, c, d, e, f, g, h, A, B, C, disc;
+        let attempts = 0, maxAttempts = 1000;
+        while (attempts < maxAttempts) {
+          attempts++;
+          // Генерируем левую часть
+          a = Math.floor(Math.random() * 5) + 2;  // [2,6]
+          if (Math.random() < 0.5) a = -a;
+          b = Math.floor(Math.random() * 11) - 5;   // [-5,5]
+          if (b === 0) b = 2;
+          c = Math.floor(Math.random() * 5) + 2;
+          if (Math.random() < 0.5) c = -c;
+          d = Math.floor(Math.random() * 11) - 5;
+          if (d === 0) d = 3;
           
-          c = Math.floor(Math.random() * 11) - 5;
-          if (Math.abs(c) < 2) c = c < 0 ? -3 : 3;
+          // Генерируем правую часть
+          e = Math.floor(Math.random() * 5) + 2;
+          if (Math.random() < 0.5) e = -e;
+          f = Math.floor(Math.random() * 11) - 5;
+          if (f === 0) f = 2;
+          g = Math.floor(Math.random() * 5) + 2;
+          if (Math.random() < 0.5) g = -g;
+          h = Math.floor(Math.random() * 11) - 5;
+          if (h === 0) h = 3;
           
-          b = Math.floor(Math.random() * 21) - 10;
-          if (Math.abs(b) < 2) b = b < 0 ? -2 : 2;
+          // Не обязательно требуем уникальности абсолютных значений.
+          // Приводим уравнение к виду:
+          // (ax+b)(cx+d) - (ex+f)(gx+h) = 0  =>  A*x² + B*x + C = 0
+          A = a * c - e * g;
+          B = (a * d + b * c) - (e * h + f * g);
+          C = b * d - f * h;
           
-          d = Math.floor(Math.random() * 21) - 10;
-          if (Math.abs(d) < 2) d = d < 0 ? -3 : 3;
-          
-          // Проверяем, чтобы абсолютные значения a, b, c, d были уникальны
-          let uniqueAbs = new Set([Math.abs(a), Math.abs(b), Math.abs(c), Math.abs(d)]);
-          if (uniqueAbs.size !== 4) continue;
-          
-          // k выбирается из диапазона [1,5]
-          k = Math.floor(Math.random() * 5) + 1;
-          // Определяем e как b*d - k
-          e = b * d - k;
-          if (Math.abs(e) < 2) continue;
-          
-          // Проверяем, что абсолютное значение e отличается от остальных
-          uniqueAbs.add(Math.abs(e));
-          if (uniqueAbs.size !== 5) continue;
-          
-          // Вычисляем коэффициенты раскрытия: A = a*c, B = a*d + b*c, C = k.
-          A = a * c;
-          B = a * d + b * c;
-          C = k;
+          if (A === 0) continue;
           disc = B * B - 4 * A * C;
           if (disc < 0) continue;
-          
-          // Нашли подходящие значения
+          // Нашли удачный вариант.
           break;
         }
-        // Вычисляем корни квадратного уравнения (для информации)
+        // Если maxAttempts исчерпан, устанавливаем значения по умолчанию.
+        if (attempts === maxAttempts) {
+          a = 2; b = 3; c = 3; d = 4; e = 2; f = 1; g = 4; h = 3;
+          A = a * c - e * g;
+          B = (a * d + b * c) - (e * h + f * g);
+          C = b * d - f * h;
+          disc = B * B - 4 * A * C;
+        }
         let sqrtDisc = Math.sqrt(disc);
         let root1 = (-B + sqrtDisc) / (2 * A);
         let root2 = (-B - sqrtDisc) / (2 * A);
-        // Формируем строку уравнения вида (ax+b)(cx+d)=e
-        eqObj.equation = "(" + a + "x " + (b >= 0 ? "+ " + b : "- " + Math.abs(b)) + ")" +
-                         "(" + c + "x " + (d >= 0 ? "+ " + d : "- " + Math.abs(d)) + ") = " + e;
-        // Сохраняем корни как решение (с проверкой на совпадение)
+        eqObj.equation =
+          "(" + a + "x " + (b >= 0 ? "+ " + b : "- " + Math.abs(b)) + ")" +
+          "(" + c + "x " + (d >= 0 ? "+ " + d : "- " + Math.abs(d)) + ")" +
+          " = (" + e + "x " + (f >= 0 ? "+ " + f : "- " + Math.abs(f)) + ")" +
+          "(" + g + "x " + (h >= 0 ? "+ " + h : "- " + Math.abs(h)) + ")";
+        // Решаем уравнение
         if (Math.abs(root1 - root2) < 0.001) {
           eqObj.solution = [root1];
         } else {
