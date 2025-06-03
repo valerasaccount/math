@@ -422,24 +422,21 @@
         eqObj.solution = (r1 === r2) ? [r1] : [r1, r2];
       
       } else if (difficulty === 9) {
-        // Новый уровень 9: уравнение вида (ax+b)(cx+d) = (ex+f)(gx+h)
-        // Из-за строгих ограничений предыдущая версия не генерировала подходящие коэффициенты.
-        // Здесь мы используем расширенный диапазон и лимит попыток.
+        // Уровень 9: (ax+b)(cx+d) = (ex+f)(gx+h)
+        // Если нет действительных корней, решение становится 0.
         let a, b, c, d, e, f, g, h, A, B, C, disc;
         let attempts = 0, maxAttempts = 1000;
         while (attempts < maxAttempts) {
           attempts++;
-          // Генерируем левую часть
-          a = Math.floor(Math.random() * 5) + 2;  // [2,6]
+          a = Math.floor(Math.random() * 5) + 2;
           if (Math.random() < 0.5) a = -a;
-          b = Math.floor(Math.random() * 11) - 5;   // [-5,5]
+          b = Math.floor(Math.random() * 11) - 5;
           if (b === 0) b = 2;
           c = Math.floor(Math.random() * 5) + 2;
           if (Math.random() < 0.5) c = -c;
           d = Math.floor(Math.random() * 11) - 5;
           if (d === 0) d = 3;
           
-          // Генерируем правую часть
           e = Math.floor(Math.random() * 5) + 2;
           if (Math.random() < 0.5) e = -e;
           f = Math.floor(Math.random() * 11) - 5;
@@ -449,20 +446,13 @@
           h = Math.floor(Math.random() * 11) - 5;
           if (h === 0) h = 3;
           
-          // Не обязательно требуем уникальности абсолютных значений.
-          // Приводим уравнение к виду:
-          // (ax+b)(cx+d) - (ex+f)(gx+h) = 0  =>  A*x² + B*x + C = 0
           A = a * c - e * g;
           B = (a * d + b * c) - (e * h + f * g);
           C = b * d - f * h;
-          
           if (A === 0) continue;
           disc = B * B - 4 * A * C;
-          if (disc < 0) continue;
-          // Нашли удачный вариант.
           break;
         }
-        // Если maxAttempts исчерпан, устанавливаем значения по умолчанию.
         if (attempts === maxAttempts) {
           a = 2; b = 3; c = 3; d = 4; e = 2; f = 1; g = 4; h = 3;
           A = a * c - e * g;
@@ -470,19 +460,22 @@
           C = b * d - f * h;
           disc = B * B - 4 * A * C;
         }
-        let sqrtDisc = Math.sqrt(disc);
-        let root1 = (-B + sqrtDisc) / (2 * A);
-        let root2 = (-B - sqrtDisc) / (2 * A);
         eqObj.equation =
           "(" + a + "x " + (b >= 0 ? "+ " + b : "- " + Math.abs(b)) + ")" +
           "(" + c + "x " + (d >= 0 ? "+ " + d : "- " + Math.abs(d)) + ")" +
           " = (" + e + "x " + (f >= 0 ? "+ " + f : "- " + Math.abs(f)) + ")" +
           "(" + g + "x " + (h >= 0 ? "+ " + h : "- " + Math.abs(h)) + ")";
-        // Решаем уравнение
-        if (Math.abs(root1 - root2) < 0.001) {
-          eqObj.solution = [root1];
+        if (disc < 0) {
+          eqObj.solution = 0;
         } else {
-          eqObj.solution = [root1, root2];
+          let sqrtDisc = Math.sqrt(disc);
+          let root1 = (-B + sqrtDisc) / (2 * A);
+          let root2 = (-B - sqrtDisc) / (2 * A);
+          if (Math.abs(root1 - root2) < 0.001) {
+            eqObj.solution = [root1];
+          } else {
+            eqObj.solution = [root1, root2];
+          }
         }
       }
       
@@ -510,6 +503,18 @@
       } else if (currentDifficulty === 8) {
         equationP.textContent = randomEq.equation;
         answerInput.placeholder = "Введите корни через запятую";
+      } else if (currentDifficulty === 9) {
+        equationP.textContent = randomEq.equation;
+        // Теперь в уровне 9 ожидается формат "количество ответов: ответ(ы)"
+        if (Array.isArray(randomEq.solution)) {
+          if (randomEq.solution.length > 1) {
+            answerInput.placeholder = "Например: 2: 3.5, 7.6";
+          } else {
+            answerInput.placeholder = "Например: 1: 3.5";
+          }
+        } else {
+          answerInput.placeholder = "Например: 1: 0";
+        }
       } else {
         equationP.textContent = randomEq.equation;
         answerInput.placeholder = "Введите значение";
@@ -522,7 +527,6 @@
         timerInterval = setInterval(function() {
           currentTime--;
           updateTimerDisplay();
-          // Если время истекло, останавливаем таймер и показываем сообщение, оставляя уравнение активным.
           if (currentTime <= 0 && !timedOut) {
             timedOut = true;
             clearInterval(timerInterval);
@@ -603,7 +607,6 @@
     // 9. Функция проверки ответа пользователя
     // ====================================================
     function checkAnswer() {
-      // Не останавливаем таймер при неправильном ответе.
       if (testerMode) {
         resultP.textContent = "Режим тестера: ответ не проверяется. Пропуск уравнения.";
         setTimeout(() => { resultP.textContent = ""; generateEquation(); }, 500);
@@ -617,6 +620,7 @@
       
       const responseTime = (Date.now() - questionStartTime) / 1000;
       
+      // Обработка уровня 6
       if (currentDifficulty === 6) {
         let userInput = answerInput.value.split(",");
         if (userInput.length !== 2) {
@@ -661,6 +665,7 @@
           setTimeout(() => { resultP.textContent = ""; }, 1000);
         }
       
+      // Обработка уровня 8
       } else if (currentDifficulty === 8) {
         let parts = answerInput.value.split(",");
         let userRoots = parts.map(p => parseFloat(p.trim())).filter(v => !isNaN(v));
@@ -740,6 +745,112 @@
           }
         }
       
+      // Обработка уровня 9 с требуемым форматом "количество ответов: ответ(ы)"
+      } else if (currentDifficulty === 9) {
+        // Ожидаемый формат: "N: a, b, ..." где N - число ответов
+        let userString = answerInput.value;
+        let parts = userString.split(":");
+        if (parts.length !== 2) {
+          resultP.textContent = "Формат ответа должен быть 'количество ответов: ответ(ы)'.";
+          return;
+        }
+        let answerCount = parseInt(parts[0].trim());
+        if (isNaN(answerCount)) {
+          resultP.textContent = "Неверное значение количества ответов.";
+          return;
+        }
+        let answersPart = parts[1].trim();
+        let userAnswers = answersPart.split(",").map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
+        if (userAnswers.length !== answerCount) {
+          resultP.textContent = "Количество введённых ответов не соответствует указанному количеству.";
+          return;
+        }
+        
+        if (Array.isArray(currentSolution)) {
+          // Если ожидается несколько корней
+          let sortedUser = [...userAnswers].sort((a, b) => a - b);
+          let sortedSolution = [...currentSolution].sort((a, b) => a - b);
+          let correct = true;
+          if (sortedUser.length !== sortedSolution.length) {
+            correct = false;
+          } else {
+            for (let i = 0; i < sortedUser.length; i++) {
+              if (Math.abs(sortedUser[i] - sortedSolution[i]) > 0.001) {
+                correct = false;
+                break;
+              }
+            }
+          }
+          if (correct) {
+            clearInterval(timerInterval);
+            resultP.textContent = "Верно!";
+            correctTimes.push(responseTime);
+            completedEquations.push({ equation: equationP.textContent, time: responseTime });
+            if (!testerMode && !timedOut) {
+              counter--;
+              updateCounter();
+            }
+            answerInput.disabled = true;
+            if (!testerMode && counter <= 0) {
+              setTimeout(() => {
+                resultP.style.transition = "opacity 2s";
+                resultP.style.opacity = "0";
+                setTimeout(() => { resultP.textContent = ""; resultP.style.opacity = "1"; endGame(); }, 2000);
+              }, 2000);
+              return;
+            }
+            setTimeout(() => {
+              resultP.style.transition = "opacity 2s";
+              resultP.style.opacity = "0";
+              setTimeout(() => { resultP.textContent = ""; resultP.style.opacity = "1"; generateEquation(); }, 2000);
+            }, 2000);
+          } else {
+            resultP.textContent = "Неправильно! Попробуйте ещё.";
+            incorrectTimes.push(responseTime);
+            if (!testerMode) { counter += penalty; updateCounter(); }
+            answerInput.value = "";
+            setTimeout(() => { resultP.textContent = ""; }, 1000);
+          }
+        } else {
+          // Если ожидается один ответ
+          if (answerCount !== 1) {
+            resultP.textContent = "Ожидается один ответ.";
+            return;
+          }
+          let userAnswer = userAnswers[0];
+          if (Math.abs(userAnswer - currentSolution) < 0.001) {
+            clearInterval(timerInterval);
+            resultP.textContent = "Верно!";
+            correctTimes.push(responseTime);
+            completedEquations.push({ equation: equationP.textContent, time: responseTime });
+            if (!testerMode && !timedOut) {
+              counter--;
+              updateCounter();
+            }
+            answerInput.disabled = true;
+            if (!testerMode && counter <= 0) {
+              setTimeout(() => {
+                resultP.style.transition = "opacity 2s";
+                resultP.style.opacity = "0";
+                setTimeout(() => { resultP.textContent = ""; resultP.style.opacity = "1"; endGame(); }, 2000);
+              }, 2000);
+              return;
+            }
+            setTimeout(() => {
+              resultP.style.transition = "opacity 2s";
+              resultP.style.opacity = "0";
+              setTimeout(() => { resultP.textContent = ""; resultP.style.opacity = "1"; generateEquation(); }, 2000);
+            }, 2000);
+          } else {
+            resultP.textContent = "Неправильно! Попробуйте ещё.";
+            incorrectTimes.push(responseTime);
+            if (!testerMode) { counter += penalty; updateCounter(); }
+            answerInput.value = "";
+            setTimeout(() => { resultP.textContent = ""; }, 1000);
+          }
+        }
+      
+      // Обработка остальных уровней
       } else {
         let userAnswer = parseFloat(answerInput.value);
         if (isNaN(userAnswer)) {
