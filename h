@@ -327,49 +327,33 @@
         eqObj.equation = left + " = " + c;
         eqObj.solution = xSolution;
       
-    } else if (difficulty === 5) {
-      // Новый вариант для уравнения вида: a*(x ± b) ± c = d*(x ± e) ± f,
-      // чтобы решение уравнения было точно равно xSolution.
-      // Генерируем a и d, где a и d не равны по модулю.
-      let a = Math.floor(Math.random() * 8) + 2; // значение от 2 до 9
-      if (Math.random() < 0.5) { a = -a; }
-      let d;
-      do {
-        d = Math.floor(Math.random() * 8) + 2;
-        if (Math.random() < 0.5) { d = -d; }
-      } while (Math.abs(d) === Math.abs(a));
-      
-      // Выбираем знак для выражения внутри скобок
-      let s1 = (Math.random() < 0.5) ? 1 : -1;
-      let s2 = (Math.random() < 0.5) ? 1 : -1;
-      
-      // Выбираем b и e как положительные целые числа
-      let b = Math.floor(Math.random() * 15) + 1;
-      let e = Math.floor(Math.random() * 15) + 1;
-      
-      // Выбираем решение. Чтобы получать и нецелые ответы (например, 6.5), округляем до половины.
-      let xSolution = (Math.floor(Math.random() * 41) - 20) / 2;
-      
-      // Выбираем случайное число c (не равное 0)
-      let c;
-      do {
-        c = Math.floor(Math.random() * 41) - 20;
-      } while (c === 0);
-      
-      // Вычисляем f так, чтобы при подстановке xSolution уравнение было верно:
-      // a*(xSolution + s1*b) + c = d*(xSolution + s2*e) + f   =>   f = a*(xSolution + s1*b) + c - d*(xSolution + s2*e)
-      let f = a * (xSolution + s1 * b) + c - d * (xSolution + s2 * e);
-      
-      // Формируем строковое представление уравнения.
-      // Форматируем левую часть: например, "2(x - 11) + 12" (если a=2, s1=-1, b=11, c=12)
-      let leftExpr = (Math.abs(a) === 1 ? "" : a.toString()) + "(x " + (s1 === -1 ? "- " : "+ ") + b + ")"
+      } else if (difficulty === 5) {
+        // Новый вариант для уравнения вида: a*(x ± b) ± c = d*(x ± e) ± f,
+        // чтобы решение уравнения было точно равно xSolution.
+        // Генерируем a и d, где a и d не равны по модулю.
+        let a = Math.floor(Math.random() * 8) + 2;
+        if (Math.random() < 0.5) { a = -a; }
+        let d;
+        do {
+          d = Math.floor(Math.random() * 8) + 2;
+          if (Math.random() < 0.5) { d = -d; }
+        } while (Math.abs(d) === Math.abs(a));
+        let s1 = (Math.random() < 0.5) ? 1 : -1;
+        let s2 = (Math.random() < 0.5) ? 1 : -1;
+        let b = Math.floor(Math.random() * 15) + 1;
+        let e = Math.floor(Math.random() * 15) + 1;
+        let xSolution = (Math.floor(Math.random() * 41) - 20) / 2;
+        let c;
+        do {
+          c = Math.floor(Math.random() * 41) - 20;
+        } while (c === 0);
+        let f = a * (xSolution + s1 * b) + c - d * (xSolution + s2 * e);
+        let leftExpr = (Math.abs(a) === 1 ? "" : a.toString()) + "(x " + (s1 === -1 ? "- " : "+ ") + b + ")"
                      + (c >= 0 ? " + " + c : " - " + Math.abs(c));
-      // Формируем правую часть: например, "10(x - 6) - 2" (если d=10, s2=-1, e=6, f=-2)
-      let rightExpr = (Math.abs(d) === 1 ? "" : d.toString()) + "(x " + (s2 === -1 ? "- " : "+ ") + e + ")"
+        let rightExpr = (Math.abs(d) === 1 ? "" : d.toString()) + "(x " + (s2 === -1 ? "- " : "+ ") + e + ")"
                      + (f >= 0 ? " + " + f : " - " + Math.abs(f));
-      
-      eqObj.equation = leftExpr + " = " + rightExpr;
-      eqObj.solution = xSolution; 
+        eqObj.equation = leftExpr + " = " + rightExpr;
+        eqObj.solution = xSolution; 
       
       } else if (difficulty === 6) {
         let xSolution = Math.floor(Math.random() * 21) - 10;
@@ -454,7 +438,7 @@
           if (Math.random() < 0.5) c = -c;
           d = Math.floor(Math.random() * 11) - 5;
           if (d === 0) d = 3;
-          
+  
           e = Math.floor(Math.random() * 5) + 2;
           if (Math.random() < 0.5) e = -e;
           f = Math.floor(Math.random() * 11) - 5;
@@ -463,7 +447,7 @@
           if (Math.random() < 0.5) g = -g;
           h = Math.floor(Math.random() * 11) - 5;
           if (h === 0) h = 3;
-          
+  
           A = a * c - e * g;
           B = (a * d + b * c) - (e * h + f * g);
           C = b * d - f * h;
@@ -489,6 +473,13 @@
           let sqrtDisc = Math.sqrt(disc);
           let root1 = (-B + sqrtDisc) / (2 * A);
           let root2 = (-B - sqrtDisc) / (2 * A);
+          
+          // Если корни иррациональные (sqrtDisc не целое число), округляем до двух знаков после запятой.
+          if (sqrtDisc % 1 !== 0) {
+            root1 = Number(root1.toFixed(2));
+            root2 = Number(root2.toFixed(2));
+          }
+          
           if (Math.abs(root1 - root2) < 0.001) {
             eqObj.solution = [root1];
           } else {
@@ -524,7 +515,7 @@
         answerInput.placeholder = testerMode ? "Правильный ответ: " + getCorrectAnswer(randomEq.solution) : "Введите корни через запятую";
       } else if (currentDifficulty === 9) {
         equationP.textContent = randomEq.equation;
-        answerInput.placeholder = testerMode ? "Правильный ответ: " + getCorrectAnswer(randomEq.solution) : "Например: 2: 3, 5";
+        answerInput.placeholder = testerMode ? "Правильный ответ: " + getCorrectAnswer(randomEq.solution) : "кол. ответов: ответ(ы) через запятую и пробел";
       } else {
         equationP.textContent = randomEq.equation;
         answerInput.placeholder = testerMode ? "Правильный ответ: " + getCorrectAnswer(randomEq.solution) : "Введите значение";
@@ -618,7 +609,6 @@
     // ====================================================
     function checkAnswer() {
       if (testerMode) {
-        // В тестовом режиме ответ не проверяется.
         resultP.textContent = "Режим тестера активен. Пропуск проверки ответа.";
         setTimeout(() => { resultP.textContent = ""; generateEquation(); }, 1500);
         return;
@@ -755,7 +745,6 @@
         }
       
       } else if (currentDifficulty === 9) {
-        // Обрабатываем формат ответа "количество ответов: ответ(ы)"
         let userString = answerInput.value;
         let parts = userString.split(":");
         if (parts.length !== 2) {
