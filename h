@@ -5,128 +5,161 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Генератор уравнений</title>
   <style>
-    /* ***********************
-       Общие стили для страницы
-       *********************** */
+    /* Общий стиль с красивым дизайном */
     body {
-      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #74ABE2, #5563DE);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      color: #fff;
+    }
+    
+    /* Контейнер страницы */
+    .container {
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 15px;
+      padding: 30px 40px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+      max-width: 600px;
+      width: 95%;
       text-align: center;
-      margin-top: 30px;
-      background-color: #f0f0f0;
     }
     
-    /* *******************************
-       Стили для текстового ввода
-       ******************************* */
+    h1 {
+      font-size: 2.8em;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    }
+    
+    /* Стили для текстового ввода */
     input[type="text"] {
-      padding: 5px;
+      padding: 10px;
       font-size: 16px;
-      width: 300px;
+      width: 80%;
+      border: none;
+      border-radius: 5px;
+      margin-top: 10px;
+      outline: none;
     }
     
-    /* *******************************
-       Стили для отображения уравнения
-       ******************************* */
+    /* Кнопка */
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin-top: 20px;
+      cursor: pointer;
+      background: #5563DE;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      transition: background 0.3s ease;
+    }
+    
+    button:hover {
+      background: #4355b5;
+    }
+    
+    /* Стили для отображения уравнения и результата */
     #equation {
-      font-size: 24px;
+      font-size: 1.8em;
       font-weight: bold;
-      margin: 20px;
-      color: #333;
+      margin: 20px 0;
+      color: #fff;
       min-height: 48px;
     }
     
-    /* *******************************
-       Стили для блока результата
-       ******************************* */
     #result {
-      font-size: 18px;
+      font-size: 1.2em;
       margin-top: 15px;
-      color: #006600;
-      opacity: 1;
+      color: #FFD700;
       min-height: 60px;
     }
     
-    /* *******************************
-       Стили для отображения имени пользователя
-       ******************************* */
+    /* Отображение имени пользователя */
     #userDisplay {
-      font-size: 20px;
+      font-size: 1.4em;
       margin-bottom: 20px;
     }
     
-    /* *******************************
-       Стили для блока выбора сложности
-       ******************************* */
+    /* Стили для блока выбора сложности */
     #difficultySelection {
       margin-bottom: 30px;
     }
     
-    /* *******************************
-       Стили для игровой области (скрыта до начала игры)
-       ******************************* */
+    select {
+      padding: 8px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: none;
+      margin-top: 10px;
+    }
+    
+    /* Игровая область */
     #gameArea {
       display: none;
     }
     
-    /* *******************************
-       Контейнер для счётчика
-       ******************************* */
-    #counterContainer {
+    /* Счетчик и таймер */
+    #counterContainer,
+    #timerDisplay {
+      font-size: 1.2em;
       margin-bottom: 15px;
-      font-size: 18px;
     }
     
-    /* *******************************
-       Контейнер для таймера – отображает обратный отсчёт (например, "Время: 30 с")
-       ******************************* */
-    #timerDisplay {
-      margin-bottom: 15px;
-      font-size: 18px;
-      color: #cc0000;
+    /* Адаптивность */
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 2.2em;
+      }
+      #equation {
+        font-size: 1.5em;
+      }
+      input[type="text"] {
+        width: 100%;
+      }
     }
   </style>
+  <!-- Подключение шрифта Roboto -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <!-- ***********************
-       Заголовок страницы
-       *********************** -->
-  <h1>Генератор уравнений</h1>
+  <div class="container">
+    <!-- Заголовок страницы -->
+    <h1>Генератор уравнений</h1>
   
-  <!-- ***********************
-       Отображение имени пользователя (из URL-параметра "name")
-       *********************** -->
-  <p id="userDisplay">Пользователь: <span id="userNameDisplay">-</span></p>
+    <!-- Отображение имени пользователя (из URL-параметра "name") -->
+    <p id="userDisplay">Пользователь: <span id="userNameDisplay">-</span></p>
   
-  <!-- ***********************
-       Блок выбора сложности
-       *********************** -->
-  <div id="difficultySelection">
-    <p>Выберите уровень сложности:</p>
-    <select id="difficultySelect">
-      <!-- Уровни 1–8: существующие, а теперь добавлен уровень 9 -->
-      <option value="1">Уровень 1: Базовый (a*x ± b = c)</option>
-      <option value="2">Уровень 2: Переменная с двух сторон (a*x ± B = d*x ± C)</option>
-      <option value="3">Уровень 3: Раскрытие скобок (a*(x ± b) = c)</option>
-      <option value="4">Уровень 4: Дробный коэффициент (1/d*x ± b = c)</option>
-      <option value="5">Уровень 5: Расширенное уравнение (a*(x ± b) ± c = d*(x ± e) ± f)</option>
-      <option value="6">Уровень 6: Системное уравнение (две переменные: x и y)</option>
-      <option value="7">Уровень 7: Дробное уравнение ((x ± a)/b = c)</option>
-      <option value="8">Уровень 8: Квадратное уравнение (a*x² + b*x + c = 0)</option>
-      <option value="9">Уровень 9: Уравнение со скобками ((ax+b)(cx+d) = (ex+f)(gx+h))</option>
-    </select>
-    <br><br>
-    <button id="startGameBtn">Начать игру</button>
-  </div>
+    <!-- Блок выбора сложности -->
+    <div id="difficultySelection">
+      <p>Выберите уровень сложности:</p>
+      <select id="difficultySelect">
+        <option value="1">Уровень 1: Базовый (a*x ± b = c)</option>
+        <option value="2">Уровень 2: Переменная с двух сторон (a*x ± B = d*x ± C)</option>
+        <option value="3">Уровень 3: Раскрытие скобок (a*(x ± b) = c)</option>
+        <option value="4">Уровень 4: Дробный коэффициент (1/d*x ± b = c)</option>
+        <option value="5">Уровень 5: Расширенное уравнение (a*(x ± b) ± c = d*(x ± e) ± f)</option>
+        <option value="6">Уровень 6: Системное уравнение (две переменные: x и y)</option>
+        <option value="7">Уровень 7: Дробное уравнение ((x ± a)/b = c)</option>
+        <option value="8">Уровень 8: Квадратное уравнение (a*x² + b*x + c = 0)</option>
+        <option value="9">Уровень 9: Уравнение со скобками ((ax+b)(cx+d) = (ex+f)(gx+h))</option>
+      </select>
+      <br><br>
+      <button id="startGameBtn">Начать игру</button>
+    </div>
   
-  <!-- ***********************
-       Игровая область
-       *********************** -->
-  <div id="gameArea">
-    <p id="counterContainer">Счётчик: <span id="counter">10</span></p>
-    <p id="timerDisplay">Время: 30 с</p>
-    <p id="equation"></p>
-    <input type="text" id="answer" placeholder="Введите значение">
-    <p id="result"></p>
+    <!-- Игровая область -->
+    <div id="gameArea">
+      <p id="counterContainer">Счётчик: <span id="counter">10</span></p>
+      <p id="timerDisplay">Время: 30 с</p>
+      <p id="equation"></p>
+      <input type="text" id="answer" placeholder="Введите значение">
+      <p id="result"></p>
+    </div>
   </div>
   <script>
     // ====================================================
@@ -328,9 +361,6 @@
         eqObj.solution = xSolution;
       
       } else if (difficulty === 5) {
-        // Новый вариант для уравнения вида: a*(x ± b) ± c = d*(x ± e) ± f,
-        // чтобы решение уравнения было точно равно xSolution.
-        // Генерируем a и d, где a и d не равны по модулю.
         let a = Math.floor(Math.random() * 8) + 2;
         if (Math.random() < 0.5) { a = -a; }
         let d;
@@ -424,8 +454,6 @@
         eqObj.solution = (r1 === r2) ? [r1] : [r1, r2];
       
       } else if (difficulty === 9) {
-        // Уровень 9: (ax+b)(cx+d) = (ex+f)(gx+h)
-        // Если нет действительных корней, решение становится 0.
         let a, b, c, d, e, f, g, h, A, B, C, disc;
         let attempts = 0, maxAttempts = 1000;
         while (attempts < maxAttempts) {
@@ -487,7 +515,6 @@
           }
           
           if (sqrtDisc % 1 === 0) {
-            // Рациональные корни, представляем в виде сокращенной дроби.
             function toFraction(numer, denom) {
               let g = gcd(numer, denom);
               numer = numer / g;
@@ -506,7 +533,6 @@
               eqObj.solution = [frac1, frac2];
             }
           } else {
-            // Иррациональные корни, округляем до двух знаков после запятой.
             let root1 = Number((num1 / den).toFixed(2));
             let root2 = Number((num2 / den).toFixed(2));
             if (Math.abs(root1 - root2) < 0.001) {
@@ -536,7 +562,6 @@
       
       const randomEq = generateRandomEquationByDifficulty(currentDifficulty);
       
-      // Отобразить уравнение и задать placeholder в зависимости от сложности
       if (currentDifficulty === 6) {
         equationP.innerHTML = randomEq.equation;
         answerInput.placeholder = testerMode ? "Правильный ответ: " + getCorrectAnswer(randomEq.solution) : "Введите x и y через запятую";
@@ -545,7 +570,7 @@
         answerInput.placeholder = testerMode ? "Правильный ответ: " + getCorrectAnswer(randomEq.solution) : "Введите корни через запятую";
       } else if (currentDifficulty === 9) {
         equationP.textContent = randomEq.equation;
-        answerInput.placeholder = testerMode ? "Правильный ответ: " + getCorrectAnswer(randomEq.solution) : "Введите ответы через запятую (в виде дроби, если возможно)";
+        answerInput.placeholder = testerMode ? "Правильный ответ: " + getCorrectAnswer(randomEq.solution) : "Введите ответы через запятую (в виде дроби)";
       } else {
         equationP.textContent = randomEq.equation;
         answerInput.placeholder = testerMode ? "Правильный ответ: " + getCorrectAnswer(randomEq.solution) : "Введите значение";
@@ -780,9 +805,7 @@
         }
       
       } else if (currentDifficulty === 9) {
-        // В ответе пользователя ожидается ввод дроби (например "1/3" или "2/5"), разделённых запятыми
         let userInput = answerInput.value.split(",").map(item => item.trim()).filter(item => item !== "");
-        // Функция для приведения дроби к числовому значению
         function fractionToNumber(frac) {
           if (frac.includes("/")) {
             let parts = frac.split("/");
@@ -794,15 +817,12 @@
               }
             }
           }
-          // Если не дробь, пробуем как число
           return parseFloat(frac.replace(",", "."));
         }
         let userAnswers = userInput.map(fractionToNumber).filter(n => !isNaN(n));
   
         if (Array.isArray(currentSolution)) {
-          // Для проверки, преобразуем каждую дробь в число
           let sortedUser = [...userAnswers].sort((a, b) => a - b);
-          // Для рациональных корней, сравнение производится по числовому значению
           let sortedSolution = currentSolution.map(frac => {
             if (typeof frac === "string" && frac.includes("/")) {
               let parts = frac.split("/");
