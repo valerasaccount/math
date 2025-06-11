@@ -1,49 +1,52 @@
 /* Основные стили для тела страницы */
 body {
   font-family: 'Segoe UI', Arial, sans-serif;
-  background: linear-gradient(120deg, #f7fafc 0%, #e4ecf7 100%);
+  /* Removed background property to prevent conflicting with the external background image */
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  color: #333;
+  color: #f0e6d2;
 }
 
-/* Центровка главного контейнера */
+/* Центровка главного контейнера с Millionaire стилистикой */
 #main-container {
   max-width: 420px;
   margin: 48px auto 0 auto;
-  background: #fff;
+  /* Затемненный фон с прозрачностью, чтобы элементы читались на фоне картинки */
+  background: rgba(0, 0, 0, 0.75);
+  border: 2px solid #DAA520; /* золотая рамка */
   border-radius: 16px;
-  box-shadow: 0 4px 24px rgba(40, 80, 160, 0.09), 0 1.5px 8px rgba(120,140,180,0.06);
+  /* Теплая тень для создания "сцены" */
+  box-shadow: 0 4px 24px rgba(218, 165, 32, 0.5), 0 1.5px 8px rgba(218, 165, 32, 0.3);
   padding: 36px 32px 32px 32px;
 }
 
-/* Заголовок */
+/* Заголовок с золотой тематикой */
 h1 {
   font-size: 2.2rem;
   margin-bottom: 10px;
-  color: #3a65a4;
+  color: #FFD700; /* золотой */
   letter-spacing: 1px;
   font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
   font-weight: 700;
-  text-shadow: 1px 2px 6px rgba(74, 145, 255, 0.12);
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
 }
 
 /* Имя пользователя */
 #userDisplay {
   font-size: 1.2rem;
   margin-bottom: 18px;
-  color: #5c7292;
+  color: #FFEC8B; /* нежно-золотой */
   font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
   font-weight: 500;
-  text-shadow: 0 1px 4px rgba(60, 100, 180, 0.07);
+  text-shadow: 0 1px 4px rgba(218, 165, 32, 0.5);
 }
 
 /* Общие стили для текста */
 p, span, label, #counterContainer, #timerDisplay, #result {
   font-family: 'Segoe UI', 'Montserrat', Arial, sans-serif;
   letter-spacing: 0.02em;
-  text-shadow: 0 1px 4px rgba(74, 145, 255, 0.05);
+  text-shadow: 0 1px 4px rgba(218, 165, 32, 0.3);
 }
 
 /* Селектор сложности и кнопка */
@@ -51,26 +54,29 @@ p, span, label, #counterContainer, #timerDisplay, #result {
   margin-bottom: 32px;
 }
 
+/* Сделано так, чтобы поле выбора уровня было того же цвета, что и поле для ответа */
 #difficultySelect {
-  padding: 8px 12px;
-  border-radius: 6px;
-  border: 1px solid #b2c2e0;
-  font-size: 1rem;
-  margin-bottom: 8px;
-  font-family: 'Segoe UI', 'Montserrat', Arial, sans-serif;
-  background: #f1f6fb;
-  color: #3a65a4;
-  transition: border-color 0.18s, box-shadow 0.2s;
-  box-shadow: 0 1.5px 6px rgba(74, 145, 255, 0.08);
+  padding: 10px 14px !important;
+  font-size: 1.13rem !important;
+  border-radius: 8px !important;
+  border: 1.7px solid #DAA520 !important;
+  margin-bottom: 12px !important;
+  font-family: 'Segoe UI', 'Montserrat', Arial, sans-serif !important;
+  background-color: rgba(17, 17, 17, 0.85) !important;
+  color: #ffffff !important;
+  box-shadow: 0 1.5px 8px rgba(218, 165, 32, 0.3) !important;
+  transition: border-color 0.18s, box-shadow 0.18s !important;
 }
+
 #difficultySelect:focus {
-  border-color: #4fa3fa;
-  outline: none;
-  box-shadow: 0 0 0 2px #c8e2fe;
+  border-color: #DAA520 !important;
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(218, 165, 32, 0.5) !important;
+  background-color: rgba(20, 20, 20, 0.9) !important;
 }
 
 #startGameBtn {
-  background: linear-gradient(90deg, #3a65a4 0%, #4fa3fa 100%);
+  background: linear-gradient(90deg, #DAA520 0%, #B8860B 100%);
   color: #fff;
   padding: 10px 26px;
   border: none;
@@ -81,11 +87,11 @@ p, span, label, #counterContainer, #timerDisplay, #result {
   margin-top: 10px;
   font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
   font-weight: 600;
-  box-shadow: 0 2px 8px rgba(70, 130, 200, 0.12);
+  box-shadow: 0 2px 8px rgba(218, 165, 32, 0.4);
 }
 
 #startGameBtn:hover {
-  background: linear-gradient(90deg, #4fa3fa 0%, #3a65a4 100%);
+  background: linear-gradient(90deg, #B8860B 0%, #DAA520 100%);
 }
 
 /* Игровая область */
@@ -98,54 +104,58 @@ p, span, label, #counterContainer, #timerDisplay, #result {
   font-size: 1.45rem;
   font-weight: 600;
   margin: 18px 0 12px 0;
-  color: #3a65a4;
+  color: #FFD700;
   min-height: 48px;
   font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
-  text-shadow: 0 2px 10px rgba(74, 145, 255, 0.08);
+  text-shadow: 0 2px 10px rgba(218, 165, 32, 0.6);
 }
 
 /* Кастомизация текстовых полей и полей ввода */
-input[type="text"], #answer {
-  width: 95%;
-  padding: 10px 14px;
-  font-size: 1.13rem;
-  border-radius: 8px;
-  border: 1.7px solid #b2c2e0;
-  margin-bottom: 12px;
-  transition: border-color 0.18s, box-shadow 0.18s;
-  font-family: 'Segoe UI', 'Montserrat', Arial, sans-serif;
-  background: #f8fbfe;
-  color: #244370;
-  box-shadow: 0 1.5px 8px rgba(74, 145, 255, 0.09);
-  letter-spacing: 0.03em;
+input[type="text"],
+#answer {
+  width: 95% !important;
+  padding: 10px 14px !important;
+  font-size: 1.13rem !important;
+  border-radius: 8px !important;
+  border: 1.7px solid #DAA520 !important;
+  margin-bottom: 12px !important;
+  transition: border-color 0.18s, box-shadow 0.18s !important;
+  font-family: 'Segoe UI', 'Montserrat', Arial, sans-serif !important;
+  background-color: rgba(17, 17, 17, 0.85) !important;
+  background-image: none !important;
+  color: #ffffff !important;
+  box-shadow: 0 1.5px 8px rgba(218, 165, 32, 0.3) !important;
+  letter-spacing: 0.03em !important;
 }
 
-input[type="text"]:focus, #answer:focus {
-  outline: none;
-  border-color: #3a65a4;
-  box-shadow: 0 0 0 2px #c8e2fe;
-  background: #f2f8ff;
-  color: #133061;
+input[type="text"]:focus,
+#answer:focus {
+  outline: none !important;
+  border-color: #DAA520 !important;
+  box-shadow: 0 0 0 2px rgba(218, 165, 32, 0.5) !important;
+  background-color: rgba(20, 20, 20, 0.9) !important;
+  color: #ffffff !important;
 }
 
-input[type="text"]::placeholder, #answer::placeholder {
-  color: #b0bad7;
-  opacity: 1;
-  font-family: 'Segoe UI', 'Montserrat', Arial, sans-serif;
-  font-size: 1rem;
-  letter-spacing: 0.02em;
+input[type="text"]::placeholder,
+#answer::placeholder {
+  color: #b0bad7 !important;
+  opacity: 1 !important;
+  font-family: 'Segoe UI', 'Montserrat', Arial, sans-serif !important;
+  font-size: 1rem !important;
+  letter-spacing: 0.02em !important;
 }
 
 /* Результаты */
 #result {
   font-size: 1.08rem;
   margin-top: 12px;
-  color: #1ba94c;
+  color: #32CD32;
   min-height: 32px;
   transition: color 0.3s;
   font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
   font-weight: 500;
-  text-shadow: 0 1px 4px rgba(70, 150, 80, 0.05);
+  text-shadow: 0 1px 4px rgba(50, 205, 50, 0.3);
 }
 
 #result.incorrect {
@@ -153,11 +163,20 @@ input[type="text"]::placeholder, #answer::placeholder {
   text-shadow: 0 1px 4px rgba(200, 50, 50, 0.08);
 }
 
-#counterContainer, #timerDisplay {
+#counterContainer,
+#timerDisplay {
   font-size: 1.08rem;
   margin-bottom: 8px;
-  color: #3a65a4;
+  color: #FFD700;
   font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
+}
+
+/* Дополнительное правило для гарантии изменения цвета фона полей ввода */
+input[type="text"],
+input#answer {
+  background-color: rgba(17, 17, 17, 0.85) !important;
+  background-image: none !important;
+  color: #ffffff !important;
 }
 
 /* Адаптивность */
@@ -168,8 +187,10 @@ input[type="text"]::placeholder, #answer::placeholder {
   #equation {
     font-size: 1.1rem;
   }
-  input[type="text"], #answer {
+  input[type="text"],
+  #answer,
+  #difficultySelect {
     font-size: 1rem;
     padding: 9px 8px;
   }
-}
+}   
