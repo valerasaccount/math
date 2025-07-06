@@ -5,22 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Генератор уравнений</title>
   <style>
-    html, body {
-      height: 100%;
-      margin: 0;
-    }
     /* ***********************
        Общие стили для страницы
        *********************** */
     body {
       font-family: Arial, sans-serif;
       text-align: center;
+      margin-top: 30px;
       background-color: #f0f0f0;
-      background-image: url("https://www.gamesload.com/images/products/Microids/background__Millionaire_.jpg");
-      background-repeat: no-repeat;
-      background-size: cover;
-      background-position: center;
-      background-attachment: fixed;
     }
     
     /* *******************************
@@ -554,7 +546,7 @@
         answerInput.placeholder = testerMode ? "Правильный ответ: " + getCorrectAnswer(randomEq.solution) : "Введите корни через запятую";
       } else if (currentDifficulty === 9) {
         equationP.textContent = randomEq.equation;
-        answerInput.placeholder = testerMode ? "Правильный ответ: " + getCorrectAnswer(randomEq.solution) : "Введите ответы через запятую (в виде дробей)";
+        answerInput.placeholder = testerMode ? "Правильный ответ: " + getCorrectAnswer(randomEq.solution) : "Введите ответы через запятую (в виде дроби, если возможно)";
       } else {
         equationP.textContent = randomEq.equation;
         answerInput.placeholder = testerMode ? "Правильный ответ: " + getCorrectAnswer(randomEq.solution) : "Введите значение";
