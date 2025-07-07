@@ -104,7 +104,7 @@
   <div id="difficultySelection">
     <p>Выберите уровень сложности:</p>
     <select id="difficultySelect">
-      <!-- Уровни 1–8: существующие, а теперь добавлен уровень 9 -->
+      <!-- Уровни 1–9: существующие, а теперь добавлен уровень 10 для задач 6Класс -->
       <option value="1">Уровень 1: Базовый (a*x ± b = c)</option>
       <option value="2">Уровень 2: Переменная с двух сторон (a*x ± B = d*x ± C)</option>
       <option value="3">Уровень 3: Раскрытие скобок (a*(x ± b) = c)</option>
@@ -114,6 +114,7 @@
       <option value="7">Уровень 7: Дробное уравнение ((x ± a)/b = c)</option>
       <option value="8">Уровень 8: Квадратное уравнение (a*x² + b*x + c = 0)</option>
       <option value="9">Уровень 9: Уравнение со скобками ((ax+b)(cx+d) = (ex+f)(gx+h))</option>
+      <option value="10">Уровень 10: Задачи 6Класс</option>
     </select>
     <br><br>
     <button id="startGameBtn">Начать игру</button>
@@ -135,6 +136,7 @@
     // ====================================================
     let currentDifficulty = 1;
     let currentSolution = null;
+    let currentProblemId = null; // For level 10: ID of DB problem
     let questionStartTime = null;
     let counter = 10;
     let timerInterval = null;  // Интервал таймера
@@ -245,7 +247,7 @@
     // ====================================================
     function generateRandomEquationByDifficulty(difficulty) {
       let eqObj = { equation: "", solution: null };
-      
+      // Levels 1..9 remain unchanged
       if (difficulty === 1) {
         let a, xSolution, b, c;
         do {
@@ -329,9 +331,6 @@
         eqObj.solution = xSolution;
       
       } else if (difficulty === 5) {
-        // Новый вариант для уравнения вида: a*(x ± b) ± c = d*(x ± e) ± f,
-        // чтобы решение уравнения было точно равно xSolution.
-        // Генерируем a и d, где a и d не равны по модулю.
         let a = Math.floor(Math.random() * 8) + 2;
         if (Math.random() < 0.5) { a = -a; }
         let d;
@@ -425,8 +424,6 @@
         eqObj.solution = (r1 === r2) ? [r1] : [r1, r2];
       
       } else if (difficulty === 9) {
-        // Уровень 9: (ax+b)(cx+d) = (ex+f)(gx+h)
-        // Если нет действительных корней, решение становится 0.
         let a, b, c, d, e, f, g, h, A, B, C, disc;
         let attempts = 0, maxAttempts = 1000;
         while (attempts < maxAttempts) {
@@ -488,7 +485,6 @@
           }
           
           if (sqrtDisc % 1 === 0) {
-            // Рациональные корни, представляем в виде сокращенной дроби.
             function toFraction(numer, denom) {
               let g = gcd(numer, denom);
               numer = numer / g;
@@ -507,7 +503,6 @@
               eqObj.solution = [frac1, frac2];
             }
           } else {
-            // Иррациональные корни, округляем до двух знаков после запятой.
             let root1 = Number((num1 / den).toFixed(2));
             let root2 = Number((num2 / den).toFixed(2));
             if (Math.abs(root1 - root2) < 0.001) {
@@ -535,6 +530,36 @@
       updateTimerDisplay();
       timedOut = false;
       
+      // Если выбран уровень 10, получить задачу из БД через PHP
+      if (currentDifficulty === 10) {
+        // Ожидается, что game.php?json=1 вернет JSON с { problemId, problemText, correctAnswer }
+        fetch('game.php?json=1')
+          .then(response => response.json())
+          .then(data => {
+            currentProblemId = data.problemId;
+            equationP.innerHTML = data.problemText;
+            answerInput.placeholder = testerMode ? "Правильный ответ: " + data.correctAnswer : "Введите ваш ответ";
+            questionStartTime = Date.now();
+            timerInterval = setInterval(function() {
+              currentTime--;
+              updateTimerDisplay();
+              if (currentTime <= 0 && !timedOut) {
+                timedOut = true;
+                clearInterval(timerInterval);
+                counter += timePunishment;
+                updateCounter();
+                resultP.textContent = "Время истекло! + " + timePunishment;
+              }
+            }, 1000);
+          })
+          .catch(err => {
+            equationP.innerHTML = "Ошибка загрузки задания.";
+            console.error(err);
+          });
+        return;
+      }
+      
+      // Для уровней 1-9 используем JS-генератор уравнений
       const randomEq = generateRandomEquationByDifficulty(currentDifficulty);
       
       // Отобразить уравнение и задать placeholder в зависимости от сложности
@@ -546,7 +571,7 @@
         answerInput.placeholder = testerMode ? "Правильный ответ: " + getCorrectAnswer(randomEq.solution) : "Введите корни через запятую";
       } else if (currentDifficulty === 9) {
         equationP.textContent = randomEq.equation;
-        answerInput.placeholder = testerMode ? "Правильный ответ: " + getCorrectAnswer(randomEq.solution) : "Введите ответы через запятую (в виде дроби, если возможно)";
+        answerInput.placeholder = testerMode ? "Правильный ответ: " + getCorrectAnswer(randomEq.solution) : "Введите ответы через запятую";
       } else {
         equationP.textContent = randomEq.equation;
         answerInput.placeholder = testerMode ? "Правильный ответ: " + getCorrectAnswer(randomEq.solution) : "Введите значение";
@@ -639,12 +664,69 @@
     // 9. Функция проверки ответа пользователя
     // ====================================================
     function checkAnswer() {
+      // Если режим тестера активен, пропускаем проверку
       if (testerMode) {
         resultP.textContent = "Режим тестера активен. Пропуск проверки ответа.";
         setTimeout(() => { resultP.textContent = ""; generateEquation(); }, 1500);
         return;
       }
       
+      // Если уровень 10, отправить ответ на сервер для проверки из БД
+      if (currentDifficulty === 10) {
+        const userAnswer = answerInput.value.trim();
+        if (!userAnswer) {
+          resultP.textContent = "Пожалуйста, введите ответ.";
+          return;
+        }
+        clearInterval(timerInterval);
+        const responseTime = (Date.now() - questionStartTime) / 1000;
+        // Отправляем через POST: problem_id и user_answer
+        fetch('game.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: 'problem_id=' + encodeURIComponent(currentProblemId) + '&user_answer=' + encodeURIComponent(userAnswer)
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.correct) {
+            clearInterval(timerInterval);
+            resultP.textContent = "Верно!";
+            correctTimes.push(responseTime);
+            completedEquations.push({ equation: equationP.innerHTML, time: responseTime });
+            if (!testerMode && !timedOut) {
+              counter--;
+              updateCounter();
+            }
+            answerInput.disabled = true;
+            if (!testerMode && counter <= 0) {
+              setTimeout(() => {
+                resultP.style.transition = "opacity 2s";
+                resultP.style.opacity = "0";
+                setTimeout(() => { resultP.textContent = ""; resultP.style.opacity = "1"; endGame(); }, 2000);
+              }, 2000);
+              return;
+            }
+            setTimeout(() => {
+              resultP.style.transition = "opacity 2s";
+              resultP.style.opacity = "0";
+              setTimeout(() => { resultP.textContent = ""; resultP.style.opacity = "1"; generateEquation(); }, 2000);
+            }, 2000);
+          } else {
+            resultP.textContent = "Неправильно! Правильный ответ: " + data.correctAnswer;
+            incorrectTimes.push(responseTime);
+            if (!testerMode) { counter += penalty; updateCounter(); }
+            answerInput.value = "";
+            setTimeout(() => { resultP.textContent = ""; }, 1000);
+          }
+        })
+        .catch(err => {
+          resultP.textContent = "Ошибка проверки ответа.";
+          console.error(err);
+        });
+        return;
+      }
+      
+      // Если задание не из БД, проверяем ответ на основе сгенерированного уравнения
       if (currentSolution === null) {
         resultP.textContent = "Подождите, уравнение ещё не загрузилось!";
         return;
@@ -743,11 +825,11 @@
             setTimeout(() => { resultP.textContent = ""; }, 1000);
           }
         } else {
-          if (userAnswers.length !== 1) {
-            resultP.textContent = "Ожидается один ответ.";
+          let userAnswer = parseFloat(answerInput.value);
+          if (isNaN(userAnswer)) {
+            resultP.textContent = "Пожалуйста, введите числовое значение.";
             return;
           }
-          let userAnswer = userAnswers[0];
           if (Math.abs(userAnswer - currentSolution) < 0.001) {
             clearInterval(timerInterval);
             resultP.textContent = "Верно!";
@@ -781,9 +863,7 @@
         }
       
       } else if (currentDifficulty === 9) {
-        // В ответе пользователя ожидается ввод дроби (например "1/3" или "2/5"), разделённых запятыми
         let userInput = answerInput.value.split(",").map(item => item.trim()).filter(item => item !== "");
-        // Функция для приведения дроби к числовому значению
         function fractionToNumber(frac) {
           if (frac.includes("/")) {
             let parts = frac.split("/");
@@ -795,15 +875,12 @@
               }
             }
           }
-          // Если не дробь, пробуем как число
           return parseFloat(frac.replace(",", "."));
         }
         let userAnswers = userInput.map(fractionToNumber).filter(n => !isNaN(n));
   
         if (Array.isArray(currentSolution)) {
-          // Для проверки, преобразуем каждую дробь в число
           let sortedUser = [...userAnswers].sort((a, b) => a - b);
-          // Для рациональных корней, сравнение производится по числовому значению
           let sortedSolution = currentSolution.map(frac => {
             if (typeof frac === "string" && frac.includes("/")) {
               let parts = frac.split("/");
